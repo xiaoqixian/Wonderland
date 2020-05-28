@@ -105,8 +105,72 @@ class AVLTree {
 			return node;
 		}
 		
-		void _remove(int val) {
-			
+		TreeNode* _remove(TreeNode* node, int val) {
+			if (node == NULL) {
+				printf("node %d not found\n", val);
+				return node;
+			}
+			else if (val < node->val) {
+				node->left = _remove(node->left, val);
+				
+				if (getNodeHeight(node->right) - getNodeHeight(node->left) > 1) {
+					if (getNodeHeight(node->right->left) > getNodeHeight(node->right->right)) {
+						node->right = rotateRight(node->right);
+					}
+					node = rotateLeft(node);
+				}
+			}
+			else if (val > node->val) {
+				node->right = _remove(node->right, val);
+				
+				if (getNodeHeight(node->left) - getNodeHeight(node->right) > 1) {
+					if (getNodeHeight(node->left->right) > getNodeHeight(node->left->left)) {
+						node->left = rotateLeft(node->left);
+					}
+					node = rotateRight(node);
+				}
+			}
+			//如果当前节点是要删除的结点 
+			else {
+				//如果当前结点是叶子结点，则直接释放内存，树的平衡问题留给父结点去做。 
+				if (node->left == NULL && node->right == NULL) {
+					free(node);
+					return NULL;
+				}
+				//如果当前结点只有右子树，则根据AVL树的平衡原理，右子树只有一个结点，否则与左子树的高度之差超过了1
+				//所以可以直接左旋后进行释放，而右子节点依然处于底层，高度不变 
+				else if (node->left == NULL) {
+					TreeNode* tmp = node->right;
+					free(node);
+					return tmp;
+				}
+				//左子树同理
+				else if (node->right == NULL) {
+					TreeNode* tmp = node->left;
+					free(node);
+					return tmp; 
+				}
+				/*如果当前结点两个子树均存在，则直接从子树中"借"结点，说是借，其实是直接复制子结点的值，然后递归调用 
+				  _remove函数从子树中删除子结点。
+				  由于删除一个结点最多只会使得子树的高度减一，所以删除高度较高的子树中的结点最多只会导致两树的高度相
+				  差为1，并不会导致平衡树失衡，也就不需要重新调整AVL树。
+				  如果两个子树高度相同，则默认选择右子树中结点。				
+				 */ 
+				else {
+					if (getNodeHeight(node->right) >= getNodeHeight(node->left)) {
+						node->val = node->right->val;
+						node->right = _remove(node->right, node->val);
+					}
+					else {
+						node->val = node->left->val;
+						node->left = _remove(node->left, node->val);
+					}
+					updateNodeHeight(node);
+					return node;
+				} 
+			}
+			updateNodeHeight(node);
+			return node;
 		}
 	public:
 		AVLTree() {
@@ -118,7 +182,7 @@ class AVLTree {
 		}
 		
 		void remove(int val) {
-			_remove(val);
+			_remove(root, val);
 		}
 		
 		void printBinaryTree() {

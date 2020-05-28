@@ -186,7 +186,7 @@ class Solution2 {
 }; 
 
 int main() {
-	int s = 1 << 1;
+	double s = 1e9;
 	printf("%d\n", s);
 	return 0;
 }
