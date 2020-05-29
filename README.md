@@ -16,4 +16,6 @@
 
 [B+树](doc/B+Tree.md)
 
+[AVL树](doc/AVLTree.md)
+
 [红黑树](doc/红黑树.md)

@@ -182,7 +182,7 @@ class AVLTree {
 		}
 		
 		void remove(int val) {
-			_remove(root, val);
+			root = _remove(root, val);
 		}
 		
 		void printBinaryTree() {
@@ -206,6 +206,11 @@ class AVLTree {
 					printf("null ");
 					q.push(null);
 					q.push(null);
+					if (count == column) {
+						count = 0;
+						column <<= 1;
+						printf("\n");
+					}
 					continue;
 				}
 				else {
@@ -240,6 +245,8 @@ int main() {
 		tree.insert(nums[i]);
 		//printf("insert one\n");
 	}
+	tree.printBinaryTree();
+	tree.remove(4);
 	tree.printBinaryTree();
 	return 0;
 }
