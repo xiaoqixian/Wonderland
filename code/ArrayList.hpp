@@ -12,14 +12,12 @@ using namespace std;
 template <typename T>
 class ArrayList:public List {
 	private:
-		//int _length;
-		//int _size;
-		//T* _list;
-		void expand();
-	public:
-		T* _list;
 		int _length;
 		int _size;
+		T* _list;
+		void expand();
+	public:
+		ArrayList();
 		ArrayList(int size);
 		
 		void insert(int index, T t);
@@ -29,6 +27,7 @@ class ArrayList:public List {
 		void length();
 		void remove(int index);
 		T index(int index);
+		void print(void* printFunc);
 };
 
 #endif

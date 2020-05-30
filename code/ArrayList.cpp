@@ -4,6 +4,7 @@
  
 #include "ArrayList.hpp"
 #include <string.h>
+#include <stdio.h>
 using namespace std;
 
 template <typename T>
@@ -24,38 +25,48 @@ void ArrayList<T>::expand() {
 		//exit(0);
 	}
 	memset(new_list, 0, sizeof(new_list));
-	memcpy(new_list, this->_list, sizeof(this->_length);
-	delete[] _list;
+	memcpy(new_list, this->_list, this->_length * sizeof(T));
+	delete[] this->_list;
 	this->_list = new_list;
 	this->_size <<= 1;
 }
 
 template <typename T>
 void ArrayList<T>::add(T t) {
-	if (_length >= _size) {
+	if (this->_length >= this->_size) {
 		expand();
 	}
-	_array[_length++] = t;
+	this->_list[this->_length++] = t;
 }
 
 template <typename T>
 void ArrayList<T>::insert(int index, T t) {
-	if (_length > _size) {
+	if (this->_length > this->_size) {
 		expand();
 	}
-	if (index < 0 || index > _length) {
+	if (index < 0 || index > this->_length) {
 		printf("not allowed to insert an element outside the list\n");
 		return ;
 	}
 	int i;
-	for (i = _length; i > index; i--) {
-		_list[i] = _list[i - 1];
+	for (i = this->_length; i > index; i--) {
+		this->_list[i] = this->_list[i - 1];
 	}
-	_list[index] = t;
-	_length++;
+	this->_list[index] = t;
+	this->_length++;
+}
+
+template <typename T>
+void ArrayList<T>::print(void* printFunc) {
+	int i;
+	for (i = 0; i < this->_length; i++) {
+		(*printFunc)(this->_list[i]);
+	}
 }
 
 int main() {
+	ArrayList<int> array;
+	array.add(1);
 	return 0;
 }
 
