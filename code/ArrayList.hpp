@@ -10,24 +10,25 @@
 using namespace std;
 
 template <typename T>
-class ArrayList:public List {
+class ArrayList:public List<T> {
 	private:
 		int _length;
 		int _size;
 		T* _list;
 		void expand();
 	public:
-		ArrayList();
+		//ArrayList();
 		ArrayList(int size);
 		
 		void insert(int index, T t);
 		void add(T t);
 		T get(int index);
 		void set(int index, T t);
-		void length();
+		int length();
 		void remove(int index);
-		T index(int index);
-		void print(void* printFunc);
+		int index(T t);
+		void print(void*);
+		void print(void (*printFunc)(void*));
 };
 
 #endif

@@ -57,16 +57,71 @@ void ArrayList<T>::insert(int index, T t) {
 }
 
 template <typename T>
-void ArrayList<T>::print(void* printFunc) {
+void ArrayList<T>::set(int index, T t) {
+	if (index >= _length || index < 0) {
+		printf("index is greater than the array size\n");
+		return ;
+	}
+	_list[index] = t;
+}
+
+template <typename T>
+T ArrayList<T>::get(int index) {
+	if (index >= _length || index < 0) {
+		printf("index is greater than the array size\n");
+		return 0;
+	}
+	return _list[index];
+}
+
+template <typename T>
+int ArrayList<T>::length() {
+	return _length;
+}
+
+template <typename T>
+void ArrayList<T>::remove(int index) {
+	if (index >= _length || index < 0) {
+		printf("index is greater than the array size\n");
+		return ;
+	}
+	int i;
+	for (i = index; i < _length; i++) {
+		_list[i] = _list[i + 1];
+	}
+	_length--;
+}
+
+template <typename T>
+int ArrayList<T>::index(T t) {
+	return 0;
+}
+
+template <typename T>
+void ArrayList<T>::print(void (*printFunc)(void*)) {
 	int i;
 	for (i = 0; i < this->_length; i++) {
-		(*printFunc)(this->_list[i]);
+		(*printFunc)(&this->_list[i]);
 	}
+	printf("\n");
+}
+
+typedef void (*print_func)(void* i);
+
+void print_int(void* i) {
+	printf("%d ", *((int*)i));
 }
 
 int main() {
-	ArrayList<int> array;
+	ArrayList<int> array(4);
 	array.add(1);
+	array.insert(0, 3);
+	array.add(2);
+	print_func pf = print_int;
+	array.print(pf);
+	array.set(2, 10);
+	array.print(pf);
+	printf("size = %d\n", array.length());
 	return 0;
 }
 

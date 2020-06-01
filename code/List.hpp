@@ -18,7 +18,7 @@ class List {
 		virtual int length() = 0;
 		virtual void remove(int index) = 0;
 		virtual int index(T t) = 0;
-		virtual void print(void* printFunc) = 0;
+		virtual void print(void (*printFunc)(void*)) = 0;
 };
 
 #endif
