@@ -48,8 +48,7 @@ int BM(char* text, char* pattern) {
 }
 
 int main() {
-	char* text = "THIS IS A SIMPLE EXAMPLE";
-	char* pattern = "EXAMPLM";
-	printf("%d\n", BM(text, pattern));
+	int s = 1 << 30;
+	printf("%d\n", s);
 	return 0;
 }
