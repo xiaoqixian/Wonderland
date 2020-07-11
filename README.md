@@ -20,4 +20,12 @@
 
 [红黑树](doc/红黑树.md)
 
+[字典树](doc/字典树.md)
+
+---
+
+#### **图**
+
 [图](doc/图.md)
+
+[Dijkstra算法](doc/Dijkstra算法.md)
