@@ -1,40 +1,77 @@
 /*
- ¶®ÁË£¬Í¨¹ı½¨Á¢Ò»¸öÓĞÏòÍ¼£¬ÓĞÏòÍ¼µÄ±ß´Ó·Ö×ÓÖ¸Ïò·ÖÄ¸£¬±ßµÄÈ¨Öµ¾ÍÉèÎª¼ÆËãµÄ½á¹û¡£µ±È»ÓĞÏò²¢²»´ú±íÊÇµ¥ÏòµÄ£¬±ßÊÇË«ÏòµÄ£¬
- µ«ÊÇÁ½¸ö·½ÏòµÄÈ¨Öµ²»Ò»Ñù¡£
- ÄÇÃ´£¬Òª¼ÆËãÄ³Á½¸öÊıµÄÉÌ£¬¾ÍÊÇÒªÕÒµ½´Ó·Ö×Óµ½·ÖÄ¸µÄÂ·¾¶£¬²¢½«ÑØÂ·µÄÈ¨ÖµÏà³Ë¡£°´ÀíËµ£¬¶ÔÓÚÈÎºÎÂ·¾¶£¬×îÖÕ½á¹û¶¼ÊÇÒ»ÑùµÄ¡£
- ËùÒÔÁ¬Ñ°ÕÒ×î¶ÌÂ·¾¶¶¼²»ĞèÒªÁË¡£
-
- Ôò¶ÔÓÚÎÒÀ´Ëµ£¬ÖØµãÔÚÓÚÈçºÎ¹¹½¨Õâ¸öÍ¼¡£Èç¹û²»¿´ÄÚ´æÊ¹ÓÃµÄ»°£¬¿ÉÒÔÊ¹ÓÃÒ»¸ömap¶ÔÓ¦Ã¿¸ö±äÁ¿µÄ³ö¶È£¬¶ø³ö¶ÈÓÉÓÚ¾ßÓĞÈ¨Öµ£¬ËùÒÔ
- Ò²ĞèÒªÒ»¸ömapÀ´±íÊ¾£¬ËùÒÔÊÇÁ½¸ömapµÄÇ¶Ì×¡£¶øÇÒÈ¨ÖµÒªÓÃdoubleÀ´±íÊ¾£¬ÏëÏë¾ÍÖªµÀÄÚ´æ¿Ï¶¨ºÜ´ó¡£
+ * Leetcode 399.é™¤æ³•æ±‚å€¼
+ * æ•°æ®ç»“æ„è€ƒå¯Ÿï¼šå¹·æŸ¥é›†
+ *
+ * è§£æ³•åœ¨æ³¨é‡Šå’Œ../doc/å¹·æŸ¥é›†.mdä¸­å‡æœ‰è¯´æ˜
+ * æœ¬è§£æ³•æ¥è‡ªäºleetcodeé¢˜è§£ã€‚æˆ‘å†™çš„ä¸¤æ¬¡éƒ½å¤ªçƒ‚äº†ï¼Œæˆ‘è®²è´£ä»»å½’å’åœ¨å¯¹mapçš„ä¸äº†è§£ä¸Šã€‚
+ * è¿™ä»½ä»£ç ç¡®å®å†™çš„ç¾
  */
-
 
 class Solution {
 public:
+    int count;
+    unordered_map<string, string> parents; // å­˜å‚¨å½“å‰ç»“ç‚¹çš„çˆ¶æ¯
+    unordered_map<string, double> weights; // å­˜å‚¨ å½“å‰ç»“ç‚¹å€¼/çˆ¶æ¯å€¼ çš„ç»“æœ
+
+    // è¿”å›rootä»¥åŠä»a/rootçš„å€¼
+    pair <string, double> MyFind(string a){
+        if(parents.find(a) == parents.end())
+            return {"", -1.0};
+        double result = 1.0;
+        while(a != parents[a]){
+            result *= weights[a]; // result *= a/parent;
+            // è·¯å¾„å‹ç¼©åè¿˜éœ€è¦æ›´æ–°weightsï¼Œè¿™é‡Œå·æ‡’å°±ä¸è·¯å¾„å‹ç¼©äº†
+            a = parents[a];
+        }
+        return {a, result}; // è¿”å›açš„æ ¹èŠ‚ç‚¹ï¼Œå’Œa/rootçš„ç»“æœ
+    }
+ 
+    // a_bè¡¨ç¤ºaé™¤ä»¥bçš„ç»“æœ
+    void MyUnion(string a, string b, double a_b){
+        pair<string, double> p1 = MyFind(a);
+        pair<string, double> p2 = MyFind(b);
+        if("" == p1.first || "" == p2.first) return;
+        if(p1.first == p2.first) return;
+        parents[p1.first] = p2.first; 
+        weights[p1.first] = 1/p1.second * a_b * p2.second; // æ›´æ–°æƒé‡
+        count--;
+    }
     vector<double> calcEquation(vector<vector<string>>& equations, vector<double>& values, vector<vector<string>>& queries) {
-        map<string, map<string, double>> graph;
-        for (int i = 0; i < equations.size(); i++) {
-            if (graph.find(equations[i][0]) == graph.end()) {//ËµÃ÷ÔÚgraph²»´æÔÚÕâ¸ö±äÁ¿
-                map<string, double> mole_edge;//·Ö×Ó±ß
-                graph.insert(pair<string, map<string, double>>(equations[i][0], &new_edge));
-                new_edge.insert(pair<string, double>(equations[i][1], values[i]));
+        // å¹¶
+        for(int i=0; i<equations.size(); ++i){
+            string a = equations[i][0];
+            string b = equations[i][1];
+            // å¹¶æŸ¥é›†åˆå§‹åŒ–
+            if(parents.find(a) == parents.end()){
+                count++;
+                parents[a] = a;
+                weights[a] = 1.0;
             }
-            else {
-                graph[equations[i][0]].insert(pair<string, double>(equations[i][1], values[i]));
+            if(parents.find(b) == parents.end()){
+                count++;
+                parents[b] = b;
+                weights[b] = 1.0;
             }
-            if (graph.find(equations[i][1]) == graph.end()) {
-                map<string, double> deno_edge;//·ÖÄ¸±ß
-                graph.insert(pair<string, map<string, double>>(equations[i][1], &deno_edge));
-                deno_edge.insert(pair<string, double>(equations[i][0], 1/values[i]));
+            // å¹¶æ“ä½œ
+            MyUnion(a, b, values[i]);
+        }
+
+        // æŸ¥
+        vector<double> result;
+        for(auto &q : queries){
+            string a = q[0];
+            string b = q[1];
+            pair<string, double> p1 = MyFind(a); // p1.second = a/p1
+            pair<string, double> p2 = MyFind(b); // p2.second = b/p2
+            if(p1.first != p2.first || "" == p1.first || "" == p2.first){
+                result.push_back(-1.0);
             }
-            else {
-                graph[equations[i][1]].insert(pair<string, double>(equations[i][0], 1/values[i]));
+            else{
+                result.push_back(p1.second/p2.second); // a/b = (a/p1) / (b/p2);
             }
         }
-        
-        /*¶ÔÓÚqueriesÀïÃæµÄËãÊ½£¬Ê×ÏÈÔÚgraphÀïÃæ¸ù±¾ÕÒ²»µ½µÄ±äÁ¿¿Ï¶¨ÊÇ¼ÆËã²»³öÀ´µÄ£¬ÒòÎªÕÒ²»µ½ÈÎºÎ¹ØÁª
-          Æä´Î£¬Ò²¿ÉÄÜ´æÔÚÁ½¸ö¸ù±¾²»Ïà¸ÉµÄÍ¼£¬ËùÒÔ±ØĞëÄÜ¹»ÕÒµ½Ò»ÌõÂ·¾¶¡£
-         */
-        
+        return result;
+
     }
 };
+
