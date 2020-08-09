@@ -6,13 +6,11 @@
 
 #### **排序算法**
 
-[排序算法](doc/排序算法.md)
+[快速排序](doc/quick_sort.md)
 
-[快速排序](doc/快速排序.md)
+[归并排序](doc/merge_sort.md)
 
-[归并排序](doc/归并排序.md)
-
-[堆排序](doc/堆排序.md)
+[堆排序](doc/heap_sort.md)
 
 ---
 
@@ -30,28 +28,30 @@
 
 [AVL树](doc/AVLTree.md)
 
-[红黑树](doc/红黑树.md)
+[红黑树](doc/red_black_tree.md)
 
-[字典树](doc/字典树.md)
+[字典树](doc/dictionart_tree.md)
 
 ---
 
 #### **图**
 
-[图](doc/图.md)
+[Dijkstra算法](doc/dijkstra.md)
 
-[Dijkstra算法](doc/Dijkstra算法.md)
+[拓扑排序](doc/topological_sort.md)
 
-[拓扑排序](doc/拓扑排序.md)
+[判断图中是否有环](doc/judge_circle.md)
 
-[判断图中是否有环](doc/判断环.md)
+[欧拉路径](doc/euler_path.md)
 
-[欧拉路径](doc/欧拉路径.md)
+[最小生成树](doc/min_spanning_tree.md)
+
+[网络流](doc/network_flow.md)
 
 ---
 
 #### **其他**
 
-[幷查集](doc/幷查集.md)
+[幷查集](doc/disjoint_set_union.md)
 
 
