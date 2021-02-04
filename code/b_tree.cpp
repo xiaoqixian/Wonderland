@@ -116,9 +116,10 @@ private:
             if (parent->keys[1] == -1) {
                 temp = 1;
             }
+            newNode->parent = node->parent;
             /*check the right leaf of node is a sibling.*/
             NodeBlock* rightNode = static_cast<NodeBlock*>(newNode->pointers[3]);
-            if (rightNode->parent == node->parent) {
+            if (rightNode != NULL && rightNode->parent == node->parent) {
                 parent->pointers[temp+1] = rightNode;
                 parent->keys[temp] = rightNode->keys[0];
                 parent->pointers[temp] = newNode;
@@ -129,7 +130,19 @@ private:
             }
         } else {
             /*need to split the parent node.*/
+            NodeBlock* newParent = new NodeBlock();
+            NodeBlock* rightNode = static_cast<NodeBlock*>(newNode->pointers[3]);
+            if (rightNode != NULL && rightNode->parent == node->parent) {
+                newParent->pointers[0] = newNode;
+                newParent->pointers[1] = rightNode;
+                newParent->keys[0] = rightNode->keys[0];
+            }
+            NodeBlock* newParent = 
         }
+    }
+
+    void connectParent(NodeBlock* node) {
+
     }
     
     void insertPair(NodeBlock* leaf, RecordBlock* record, int location, int end = 2) {
