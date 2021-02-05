@@ -10,13 +10,10 @@
 #include <cstdio>
 using namespace std;
 
-struct S {
-    int a;
-    double d;
-};
-
 int main() {
-    int d = 256;
-    char s[32];
-    printf("%zd\n", sizeof(s));
+    const char* s = "record with key = %d\n";
+    char* fs = new char[100];
+    int key = 100;
+    sprintf(fs, s, key);
+    printf(fs);
 }
