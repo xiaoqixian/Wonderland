@@ -8,12 +8,15 @@
  **********************************************/
 #include <cstdlib>
 #include <cstdio>
+#include <iterator>
 using namespace std;
 
 int main() {
-    const char* s = "record with key = %d\n";
-    char* fs = new char[100];
-    int key = 100;
-    sprintf(fs, s, key);
-    printf(fs);
+    ;
+    for (int k = 0; k < 5; k++) {
+        int* i = n[k];
+        if (i != NULL) {
+            printf("fuck.\n");
+        }
+    }
 }

@@ -10,16 +10,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+#include <unistd.h>
+
+#define RED "\e[0;31m"
+#define CYAN "\e[0;36m"
+#define MAGENTA "\e[0;35m"
+#define NONE "\e[0m"
 
 struct Record {
-    int key;
+    u_int32_t key;
     char* str;
-    Record(int key, const char* s) {
+    Record(u_int32_t key, const char* s) {
         if (strlen(s) > 100) {
             printf("s length out of limits.\n");
             this->str = NULL;
         } else {
-            str = new char[100];
+            str = new char[10];
             this->key = key;
             strcpy(this->str, s);
         }
@@ -27,7 +33,7 @@ struct Record {
 };
 /* In our case, 4 record pointers per block.*/
 struct Block {
-    int j;
+    u_int32_t j;
     Record* records[4];
     Block() {
         j = 1;
@@ -40,36 +46,74 @@ struct Block {
 
 class ExtensiveHashTable {
 private:
-    int i;
+    u_int32_t i;
 
     Block** bucketArray;
 
-    char* toBinary(int key);
+    char* toBinary(u_int32_t key, u_int32_t length, bool output, bool toPrint);
 
-    int toDecimal(char* hash, int end);
+    char* toReverseBinary(u_int32_t key, u_int32_t length);
 
-    char* hash(int key);
+    int toDecimal(const char* hash, u_int32_t length);
+
+    char* hash(u_int32_t key);
 
     void expand();
 
-    Block* findBlock(int key);
+    Block* findBlock(const u_int32_t key);
+
+    int findLocation(const u_int32_t key);
+
+    void adjustNewBlock(Block* oldBlock, Block* newBlock, int location);
 
 public:
-   ExtensiveHashTable(int size);
+    ExtensiveHashTable(u_int32_t size);
     
-    Record* search(int key, Block* b);
+    Record* search(const u_int32_t key, Block* b);
     
     void insertRecord(Record* r);
 
-    void deleteRecord(int key);
+    void deleteRecord(const u_int32_t key);
+
+    void displayTable();
 };
 
 /* Transform a integer into its binary form. */
-char* ExtensiveHashTable::toBinary(int key) {
-    int temp = key;
-    char* res = new char[32];
-    int index = 31;
-    while (key) {
+char* ExtensiveHashTable::toBinary(u_int32_t key, u_int32_t length = 32, bool output = true, bool toPrint = false) {
+    if (length == 0) {
+        printf("toBinary length = 0 is not allowed.\n");
+        return NULL;
+    }
+    u_int32_t temp = key;
+    char* res;
+    if (!toPrint)
+        res = new char[length];
+    else {
+        res = new char[length+1];
+        res[length] = '\0';
+    }
+    int index = 0;
+    while (key && index < length) {
+        if (key & 0x00000001) {
+            res[index++] = '1';
+        } else {
+            res[index++] = '0';
+        }
+        key >>= 1;
+    }
+    while (index < length) {
+        res[index++] = '0';
+    }
+    if (output) 
+        printf("%d to binary: %s\n", temp, res);
+    return res;
+}
+
+char* ExtensiveHashTable::toReverseBinary(u_int32_t key, u_int32_t length = 32) {
+    char* res = new char[length+1];
+    res[length] = '\0';
+    int index = length-1;
+    while (key && index > -1) {
         if (key & 0x00000001) {
             res[index--] = '1';
         } else {
@@ -80,21 +124,22 @@ char* ExtensiveHashTable::toBinary(int key) {
     while (index > -1) {
         res[index--] = '0';
     }
-    printf("%d to binary: %s\n", temp, res);
     return res;
 }
 
-int ExtensiveHashTable::toDecimal(char* hash, int end) {
+int ExtensiveHashTable::toDecimal(const char* hash, u_int32_t length = 32) {
+    if (length == 0) {
+        return 0;
+    }
     int res = 0;
-    end = end > 32 ? 32 : end;
-    for (int k = 0; k < end; k++) {
+    for (int k = 0; k < length; k++) {
         if (hash[k] == '0') {
             continue;
         } else if (hash[k] == '1') {
-            res += (1<<(31-k));
+            res += (1<<(length-k-1));
         } else {
-            printf("Unknown char in the binary form.\n");
-            return 0;
+            printf(RED "Unknown char in the binary form.\n" NONE);
+            return -1;
         }
     }
     return res;
@@ -106,28 +151,27 @@ int ExtensiveHashTable::toDecimal(char* hash, int end) {
  * transform a decimal integer into its binary form. And disorder it 
  * in a certain way.
  */
-char* ExtensiveHashTable::hash(int key) {
+char* ExtensiveHashTable::hash(u_int32_t key) {
+    printf("Hash key = %d.\n", key);
     if (key < 1<<4) {
-        return toBinary(key);
     } else if (key < 1<<8) {
-        int low4Bits = key & 0x00000001;
+        u_int32_t low4Bits = key & 0x0000000f;
         key >>= 4;
         low4Bits <<= 4;
         key |= low4Bits;
-        return toBinary(key);
     } else if (key < 1<<16) {
-        int low8bits = key & 0x00000011;
+        u_int32_t low8bits = key & 0x000000ff;
         key >>= 8;
         low8bits <<= 8;
         key |= low8bits;
-        return toBinary(key);
     } else {
-        int low16Bits = key & 0x00001111;
+        u_int32_t low16Bits = key & 0x0000ffff;
         key >>= 16;
         low16Bits <<= 16;
         key |= low16Bits;
-        return toBinary(key);
     }
+    printf("After hash key = %d.\n", key);
+    return toBinary(key);
 }
 
 void ExtensiveHashTable::expand() {
@@ -135,22 +179,54 @@ void ExtensiveHashTable::expand() {
         printf("Buckets array length out of bounds.\n");
         return ;
     }
-    Block** temp = new Block*[1<<(i+1)];
+    Block** temp = new Block*[1<<((this->i)+1)]{NULL};
     if (temp == NULL) {
-        printf("allocate memory failed.\n");
+        printf(RED "allocate memory failed.\n" NONE);
         return ;
     }
-    i++;
-    for (int k = 0; k < 2<<i; k += 2) {
-        temp[k] = this->bucketArray[k];
-        temp[k+1] = this->bucketArray[k];
+    int k = 0, p = 0;
+    (this->i)++;
+    while (k < 1<<(this->i)) {
+        int j = this->bucketArray[p]->j;
+        for (int m = 0; m < (1<<(this->i-j)); m++) {
+            temp[k+m] = this->bucketArray[p];
+        }
+        k += (1<<(this->i-j));
+        p += (1<<(this->i-1-j));
     }
     delete[] (this->bucketArray);
     this->bucketArray = temp;
 }
 
-ExtensiveHashTable::ExtensiveHashTable(int size = 2) {
-    i = size;
+/*
+ * When we need to split a block, this block may be connected by multiple
+ * pointers, and we need to divide part of them to point to the new block.
+ */
+void ExtensiveHashTable::adjustNewBlock(Block* oldBlock, Block* newBlock, int location) {
+    int count = this->i - oldBlock->j + 1;
+    int k = 0, up = 0, temp = location;
+    while (count) {
+        int low1bit = location & 0x00000001;
+        if (low1bit) {
+            up += (1<<k);
+        }
+        k++;
+        location >>= 1;
+        count--;
+    }
+    int start = temp - up + (1<<(this->i-oldBlock->j));
+    if (start < 0) {
+        printf(RED "Adjust new block error\n" NONE);
+        return ;
+    }
+    for (k = 0; k < (1<<(this->i-oldBlock->j)); k++) {
+        printf(MAGENTA "Bucket Array[%d] = newBlock\n" NONE, start+k);
+        this->bucketArray[start+k] = newBlock;
+    }
+}
+
+ExtensiveHashTable::ExtensiveHashTable(u_int32_t size = 1) {
+    this->i = size;
     bucketArray = new Block*[1<<i];
     for (int k = 0; k < 1<<i; k++) {
         bucketArray[k] = new Block();
@@ -158,28 +234,37 @@ ExtensiveHashTable::ExtensiveHashTable(int size = 2) {
     printf("Initial an ExtensiveHashTable instance.\n");
 }
 
-/* If no such record, return NULL.*/
-Block* ExtensiveHashTable::findBlock(int key) {
+int ExtensiveHashTable::findLocation(const u_int32_t key) {
     char* hashBin = hash(key);
     if (hashBin == NULL) {
-        printf("Hash error.\n");
-        return NULL;
+        printf(RED "Hash error.\n" NONE);
+        return -1;
     }
     int hashVal = toDecimal(hashBin, this->i);
     delete[] hashBin;
     if (hashVal >= (1<<(this->i)) || hashVal < 0) {
-        printf("Hash value error.\n");
+        printf(RED "Hash value error.\n" NONE);
+        return -1;
+    }
+    return hashVal;
+}
+
+/* If no such record, return NULL.*/
+Block* ExtensiveHashTable::findBlock(const u_int32_t key) {
+    int hashVal = findLocation(key);
+    if (hashVal == -1) {
+        printf(RED "Find location error.\n" NONE);
         return NULL;
     }
     Block* p = this->bucketArray[hashVal];
     if (p == NULL) {
-        printf("No such block with key = %d.\n", key);
+        printf(RED "No such block with key = %d.\n" NONE, key);
         return NULL;
     }
     return p;
 }
 
-Record* ExtensiveHashTable::search(int key, Block* b = NULL) {
+Record* ExtensiveHashTable::search(const u_int32_t key, Block* b = NULL) {
     if (b == NULL) {
         b = findBlock(key);
     }
@@ -203,22 +288,19 @@ void ExtensiveHashTable::insertRecord(Record* r) {
     }
     Block* b = findBlock(r->key);
     if (b == NULL) {
-        b = new Block();
-        if (b == NULL) {
-            printf("New block failed.\n");
-            return ;
-        }
-        b->records[0] = r;
-        printf("Successfully inserted record with key = %d\n.", r->key);
+        printf(RED "Exists NULL pointer in the bucket array.\n" NONE);
         return ;
     }
     if (search(r->key, b) != NULL) {
-        printf("Key duplicated, insertion terminated.\n");
+        printf(RED "Key duplicated, insertion terminated.\n" NONE);
         return ;
     }
     for (int k = 0; k < 4; k++) {
         if (b->records[k] == NULL) {
             b->records[k] = r;
+            printf("Successfully inserted a record with key = %d in block %d\n", r->key, findLocation(r->key));
+            //printf("this->i = %d\n", this->i);
+            displayTable();
             return ;
         }
     }
@@ -228,47 +310,67 @@ void ExtensiveHashTable::insertRecord(Record* r) {
      * */
     int j = b->j;
     int i = this->i;
-    char* hashBin = toBinary(r->key);
-    int hashVal = toDecimal(hashBin, this->i);
-    delete[] hashBin;
     if (j == i) {
+        printf(RED "Need to expand the buckey array.\n" NONE);
+        printf(RED "Current table layout.\n" NONE);
+        displayTable();
+        printf("\n" NONE);
         expand();
+        printf(RED "After expansion layout.\n" NONE);
+        displayTable();
+        i = this->i;
     }
+    int hashVal = findLocation(r->key);
+    printf("Location of key=%d is %s.\n", r->key, toReverseBinary(hashVal, this->i));
     if (j < i) {
         j++;
+        printf("j = %d\n", j);
         Block* newBlock = new Block();
+        if (newBlock == NULL) {
+            printf(RED "New Block allcation error.\n" NONE);
+            return ;
+        }
         newBlock->j = j;
         b->j = j;
         /* Adjust the new block.*/
-        this->bucketArray[hashVal] = newBlock;
+        adjustNewBlock(b, newBlock, hashVal);
+        printf(CYAN "After adjustion.\n" NONE);
+        displayTable();
         int temp = 0;
         /* Now we need to distribute these records into two blocks.*/
+        printf(CYAN "To distribute all pointers in the current block.\n" NONE);
         for (int k = 0; k < 4; k++) {
             Record* re = b->records[k];
             if (re == NULL) {
                 continue;
             }
-            char* bin = toBinary(re->key);
-            char c = bin[j];
+            char* bin = hash(re->key);
+            char c = bin[j-1];
             delete[] bin;
             if (c == '0') {
+                printf("%d stays the same.\n", re->key);
                 continue;
             } else {
                 newBlock->records[temp++] = re;
                 b->records[k] = NULL;
+                printf("%d moves to the new block.\n", re->key);
             }
         }
         /*means all of the pointers go into one of the blocks*/
         if (temp == 0 || temp == 4) {
+            printf("All records go into one of the blocks.\n");
             insertRecord(r);
         } else {
-            char* bin = toBinary(r->key);
-            char c = bin[j];
+            printf("New block inserting.\n");
+            char* bin = hash(r->key);
+            char c = bin[j-1];
             if (c == '0') {
                 for (int k = 0; k < 4; k++) {
-                    if (b->records[k] != NULL) {
+                    if (b->records[k] == NULL) {
                         b->records[k] = r;
-                        printf("Successfully inserted record with key = %d\n", r->key);
+                        printf("Successfully inserted a record with key = %d in block %s\n", r->key, toReverseBinary(hashVal, this->i));
+                        printf(CYAN "After distribution and insertion.\n" NONE);
+                        displayTable();
                         return ;
                     }
                 }
@@ -276,14 +378,16 @@ void ExtensiveHashTable::insertRecord(Record* r) {
                 return ;
             } else {
                 newBlock->records[temp] = r;
-                printf("Successfully inserted record with key = %d\n", r->key);
+                printf("Successfully inserted a record with key = %d in block %s\n", r->key, toReverseBinary(hashVal, this->i));
+                printf(CYAN "After distribution and insertion.\n" NONE);
+                displayTable();
                 return ;
             }
         }
     }
 }
 
-void ExtensiveHashTable::deleteRecord(int key) {
+void ExtensiveHashTable::deleteRecord(const u_int32_t key) {
     Block* b = findBlock(key);
     if (b == NULL) {
         printf("No such record.\n");
@@ -302,25 +406,56 @@ void ExtensiveHashTable::deleteRecord(int key) {
     printf("No such record.\n");
 }
 
-int main() {
+void ExtensiveHashTable::displayTable() {
+    printf("this->i = %d in displayTable.\n", this->i);
+    for (int k = 0; k < (1<<(this->i)); k++) {
+        char* bin = toReverseBinary(k, this->i);
+        printf(MAGENTA "%s     ", bin);
+        //printf(MAGENTA "%d    ", k);
+        delete[] bin;
+        if (this->bucketArray[k] == NULL) {
+            printf("all null\n");
+            continue;
+        }
+        for (Record* r: (this->bucketArray[k])->records) {
+            if (r == NULL) {
+                printf("null ");
+            } else {
+                printf("%d ", r->key);
+            }
+        }
+        printf("j = %d\n" NONE, (this->bucketArray[k])->j);
+    }
+}
+
+void test1() {
     ExtensiveHashTable eht;
     const char* s = "Hello World";
     /* Produce random numbers between 0 and 100 to test ExtensiveHashTable for 1000 times.*/
     printf("Insert Test.\n");
-    for (int i = 0; i < 10; i++) {
-        printf("One run.\n");
-        int key = rand() % 100;
+    for (int i = 0; i < 1000; i++) {
+        printf("\n%d run.\n", i);
+        u_int32_t key = (u_int32_t)(rand() % 1000);
         Record* r = new Record(key, s);
         eht.insertRecord(r);
     }
-    printf("Search Test.\n");
-    for (int i = 0; i < 10; i++) {
-        int key = rand() % 100;
+    printf("\n");
+    eht.displayTable();
+    printf("\nSearch Test.\n");
+    for (int i = 0; i < 1000; i++) {
+        int key = rand() % 1000;
         eht.search(key);
     }
     printf("Delete Test.\n");
-    for (int i = 0; i < 10; i++) {
-        int key = rand() % 100;
+    for (int i = 0; i < 1000; i++) {
+        int key = rand() % 1000;
         eht.deleteRecord(key);
     }
+}
+
+void test2() {
+}
+
+int main() {
+    test1();
 }
