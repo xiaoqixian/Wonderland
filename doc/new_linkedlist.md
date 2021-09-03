@@ -41,12 +41,20 @@ struct list_node {
 ```c
 #include <stddef.h>
 #define CONTAINER_OF(ptr, type, member)\
-    ((type*)((char*)ptr - offsetof(type, member)))
+    ((type*)((char*)ptr - OFFSETOF(type, member)))
 ```
 
 这个宏函数的三个参数分别表示链表结点的指针，相应的要找到的结构体类型，这里是 `struct Example`，以及链表结点在该结构体中的名字。
 
-`offsetof` 同样是一个宏函数，其返回一个 `type` 的成员变量 `member` 在其内的偏移量。
+`OFFSETOF` 同样是一个宏函数，其返回一个 `type` 的成员变量 `member` 在其内的偏移量。
+
+其定义为：
+
+```c
+#define OFFSETOF(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+```
+
+这里的知识点是**常量0的指针地址为0**, 因此将0转换为 `TYPE` 指针类型后，结构体的开始地址为0，其对应 `MEMBER` 的地址自然就是其在该结构体内的偏移量了。
 
 通过这个宏函数，我们就可以这样找到相应的结构体了：
 
@@ -55,4 +63,8 @@ struct list_node* node;
 struct Example* e = CONTAINER_OF(node, struct Example, list);
 ```
 
-这样虽然并不能节省空间，但是链表与其对应的结构体绑定更加紧密了。我看到很多开源项目如果有链表的话都倾向于这种写法，说明还是有其优势的。
+这样虽然并不能节省空间，但是链表与其对应的结构体绑定更加紧密了。
+
+并且可以通过在结构体内添加多个 `listnode` 字段的方式，可以将一个结构体实例挂接到多个不同的链表上，使用另外一种的链表实现方式则难以实现这一点。
+
+我看到很多开源项目（比如[KCP](https://github.com/skywind3000/kcp.git)）如果有链表数据结构的话都倾向于这种写法，说明还是有其优势的。
