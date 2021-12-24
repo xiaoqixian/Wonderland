@@ -21,6 +21,22 @@ void printv(vector<int>& v) {
     printf("]\n");
 }
 
+void printvx(vector<int>& v) {
+    printf("[");
+    for (int num: v) {
+        printf("%x, ", num);
+    }
+    printf("]\n");
+}
+
+void printvxu(vector<unsigned int>& v) {
+    printf("[");
+    for (unsigned int num: v) {
+        printf("%x, ", num);
+    }
+    printf("]\n");
+}
+
 void printv2(vector<vector<int>>& v2) {
     int s1 = v2.size(), s2, i, k;
     if (s1 == 0) {
