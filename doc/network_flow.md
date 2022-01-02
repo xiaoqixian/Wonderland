@@ -1,8 +1,3 @@
----
-author: lunar
-date: 
----
-
 ### **网络流算法**
 
 网络流通常用于解决这样一类问题：在一个网络图中，所有的边都是有流量限制的。现有从图中一个点到另一个点的流量运输需求。要求找到一个可以满足运输需求，所有路程之和最短的线路。
@@ -13,7 +8,7 @@ date:
 
 最大流最小割定力(Ford-Fulkerson, 1962)保证了在没有非负流量和非负客量限制的前提下，Ford-Fulkerson算法总是能够找到网络中的最大流。
 
-#### **Ford-Fulkerson算法**
+##### **Ford-Fulkerson算法**
 
 该算法主要包含了3个子算法思想：残差网络思想、增广路径思想、最大流最小割思想。
 
@@ -47,65 +42,91 @@ Ford-Fulkerson算法的上述实现被称为Edmonds-Karp算法，复杂度为O(V
 
 Edmonds-Karp算法的核心在于引入反向边，反向边的残差等于正向边残差的相反数。如果一条边既走了正向，又走了反向，则代表撤销之前走正向的决定。
 
+![](../pics/flow2.bmp)
+
+如图，理论上的最大流是5, 分别为 A-B-C-F 流量2, A-B-E-F 流量1, A-D-E-F 流量2. 其中涉及到BE通道本为3的通行流量但是实际只用了1, 如果不引入反向边，很难知道这一点。所以，在我看来，引入反向边相当于在给了程序一个反悔的机制，但是这个反悔是另一次图遍历来完成的。如果图遍历时，一开始走的是 A-B-E-F，则整个图都被占据，无法加入其它流量。而A-D-E可以走 B-E 的反向边 E-B，流量为2, 到达F. 这就相当于原先的 A-B-E-F 分了流量2走 A-B-C-F, 而E-F就相当于空了2流量出来，因此可以 A-D-E-F 流量可以为2. 
+
 ```c++
-#define maxn 220
-#define INF 0x7f7f7f7f
-int cap[maxn][maxn],flow[maxn][maxn];
-int pre[maxn],res[maxn];//res[i] 残量
-int Edmonds_Karp(int start,int end)
-{
-    int maxflow=0;
-    memset(flow,0,sizeof(flow));
-    memset(pre,0,sizeof(pre));
-    queue<int> q;
-    while(true)
-    {
-        memset(res,0,sizeof(res));
-        res[start]=INF;
-        q.push(start);
-        while(!q.empty()) //BFS寻找增广路
-        {
-            int u=q.front();
-            q.pop();
-            for(int v=1;v<=end;v++)
-                if(!res[v]&&cap[u][v]>flow[u][v])
-                {
-                    res[v]=min(res[u],cap[u][v]-flow[u][v]);//start-v路径上的最小残量,可以保证最后的汇点总是拿到最小的残差。
-                    //记录v的父亲，并加入队列中
-                    pre[v]=u;//记录父亲节点以便后面的反向残差计算
-                    q.push(v);
+#define maxn 250
+#define INF 0x3f3f3f3f
+
+struct Edge {
+  int from, to, cap, flow;
+  Edge(int u, int v, int c, int f) : from(u), to(v), cap(c), flow(f) {}
+
+  void say() {
+      printf("%c -> %c, cap: %d, flow: %d\n", (char)from, (char)to, cap, flow);
+  }
+};
+
+struct EK {
+    int v, e;             // v: number of vertex, e: number of edges.
+    vector<Edge> edges;   
+    vector<int> G[maxn];  // G: G[i] contains all indexes of edges start with i
+    int a[maxn], p[maxn];
+
+    void init(int n) {
+        for (int i = 0; i < n; i++) G[i].clear();
+        edges.clear();
+    }
+
+    void addEdge(char from, char to, int cap) {
+        edges.push_back(Edge((int)from, (int)to, cap, 0));
+        edges.push_back(Edge((int)to, (int)from, 0, 0));
+        int m = edges.size();
+        G[(int)from].push_back(m - 2);
+        G[(int)to].push_back(m - 1);
+    }
+
+    int maxFlow(int s, int t) {
+        int flow = 0;
+
+        while (1) {
+            memset(a, 0, sizeof(a));
+            queue<int> q;
+            q.push(s);
+            a[s] = INF;
+
+            while (!q.empty()) {
+                int x = q.front();
+                q.pop();
+
+                for (int index: G[x]) {
+                    Edge& edge = this->edges[index];
+                    
+                    if (!this->a[edge.to] && edge.cap > edge.flow) {
+                        this->p[edge.to] = index;
+                        this->a[edge.to] = min(this->a[x], edge.cap - edge.flow);
+                        q.push(edge.to);
+                    }
                 }
+
+                if (this->a[t]) {
+                    break;
+                }
+            }
+
+            if (!this->a[t]) {
+                break;
+            }
+
+            for (int u = t; u != s; u = edges[p[u]].from) {
+                edges[p[u]].flow += this->a[t];
+                edges[p[u] ^ 1].flow -= this->a[t];
+                edges[p[u]].say();
+                edges[p[u] ^ 1].say();
+            }
+            printf("\n");
+            flow += this->a[t];
         }
-        if(res[end]==0) return maxflow;//无法继续更新最大流量，则当前流已经是最大流
-        for(int u=end;u!=start;u=pre[u])//从汇点往回走
-        {
-            flow[pre[u]][u]+=res[end];//更新正向流
-            flow[u][pre[u]]-=res[end];//更新反向流
-        }
-        maxflow+=res[end]; //更新从s流出的总流量
+        return flow;
     }
-}
-int main()
-{
-    //
-    memset(cap,0,sizeof(cap));
-    //
-    for(/**/)
-    {
-        int u,v,s;
-        scanf("%d %d %d",&u,&v,&s);
-        cap[u][v]+=s;//要考虑到重边问题
-    }
-    //
-    return 0；
-}
+};
 ```
 
 同样，我们可以实现一个DFS实现的Ford-Fulkerson算法
 
-
-
-#### **Dinic最大流算法**
+##### **Dinic最大流算法**
 
 Dinic算法比Edmonds-Karp算法更快，复杂度为O(EV^2^)。
 
@@ -118,3 +139,218 @@ Dinic算法比Edmonds-Karp算法更快，复杂度为O(EV^2^)。
 3. 如果不可能有更多的流量，则返回
 
 4. 使用level图在G中发送多个流，直到达到阻塞流量
+
+#### 费用流
+
+费用流是指在网络流的基础上对每条边存在一个单位流量费用 $w(u,v)$，这条边的流量费用就是 $f(u,v)\times w(u,v)$，且 $w$ 同样满足斜对称性，即 $w(u,v) = -w(v,u)$.
+
+最小费用最大流问题就是指在最大化 $\sum_{(u,v)\in E}f(u,v)$ 的前提下，最小化 $\sum_{(u,v)\in E}f(u,v)\times w(u,v)$.
+
+##### SSP算法
+
+SSP（Successive Shortest Path) 算法可用于求解最小费用最大流问题，在EK算法中，在进行图遍历时使用广度优先遍历，只要一条边还有流量就可以选择使用，但是在SSP中，我们选择优先流过费用更小的边。
+
+```c++
+#define maxn 250
+#define INF 0x3f3f3f3f
+
+struct Edge {
+  int from, to, cap, flow, cost;
+  Edge(int u, int v, int cap, int f, int cost) : from(u), to(v), cap(cap), flow(f), cost(cost) {}
+
+  void say() {
+      printf("%c -> %c, cap: %d, flow: %d\n", (char)from, (char)to, cap, flow);
+  }
+};
+
+class SSP {
+private:
+    vector<Edge> edges;
+    vector<int> edge_indice[maxn];
+    int dis[maxn], pre[maxn], increase_flow[maxn];
+    bool visited[maxn];
+    int max_flow, min_cost;
+
+public:
+    void addEdge(char f, char t, int cap, int cost) {
+        int from = (int)f, to = (int)t;
+        this->edges.push_back(Edge(from, to, cap, 0, cost));
+        this->edges.push_back(Edge(to, from, 0, 0, -cost));
+        int size = edges.size();
+        this->edge_indice[from].push_back(size - 2);
+        this->edge_indice[to].push_back(size - 1);
+    }
+
+    pair<int, int> maxFlowMinCost(char start, char terminate) {
+        this->max_flow = 0;
+        this->min_cost = 0;
+        int s = (int)start, t = (int)terminate;
+        
+        while (this->spfa(s, t))
+            this->update(s, t);
+        
+        return make_pair(this->max_flow, this->min_cost);
+    }
+
+    int spfa(int s, int t) {
+        memset(this->dis, INF, sizeof(this->dis));
+        queue<int> q;
+        q.push(s), this->dis[s] = 0; 
+        this->increase_flow[s] = INF, this->increase_flow[t] = 0;
+
+        while (!q.empty()) {
+            int x = q.front();
+            q.pop();
+            this->visited[x] = false;//remember to remove the visited flag for the current vertex for the next graph traverse.
+            
+            for (int index: this->edge_indice[x]) {
+                Edge& edge = this->edges[index];
+                if (edge.flow >= edge.cap || this->dis[edge.to] <= this->dis[x] + edge.cost)//if no capability on this path or shorter path for this vertex, continue.
+                    continue;
+                this->dis[edge.to] = this->dis[x] + edge.cost;
+                this->increase_flow[edge.to] = min(this->increase_flow[x], edge.cap - edge.flow);
+                //printf("this->increase_flow[%c] = %d\n", edge.to, this->increase_flow[edge.to]);
+                this->pre[edge.to] = index;
+
+                if (!this->visited[edge.to]) {
+                    this->visited[edge.to] = true;
+                    q.push(edge.to);
+                }
+            }
+        }
+        //printf("increase_flow[t] = %d\n", this->increase_flow[t]);
+        return this->increase_flow[t];
+    }
+
+    void update(int s, int t) {
+        this->max_flow += this->increase_flow[t];
+        for (int u = t; u != s; u = this->edges[this->pre[u] ^ 1].to) {
+            this->edges[this->pre[u]].flow += this->increase_flow[t];
+            this->edges[this->pre[u] ^ 1].flow -= this->increase_flow[t];
+            this->edges[this->pre[u]].say();
+            this->edges[this->pre[u] ^ 1].say();
+            this->min_cost += this->edges[this->pre[u]].cost * this->increase_flow[t];
+        }
+    }
+};
+```
+
+##### Leetcode 例题
+
+leetcode 1601 最大可达成的换楼数目。
+
+这一题提示是使用最小费用最大流算法，但是一个更重要的思想是设立两个虚拟的源点和汇点，对于每个净流出的顶点，图中增加一条源点到该顶点的流量为净流出数目、费用为0的边；对于每个净流入的点，则添加一条该顶点到汇点的边。从而使得除新添加的点之外的每个点都是流量平衡的。
+
+因此，只需要从源点出发，去除一条最小费用最大流，就能保证整个流是平衡的。
+
+```c++
+struct Edge {
+  int from, to, cap, flow, cost;
+  Edge(int u, int v, int cap, int cost) : from(u), to(v), cap(cap), cost(cost) {}
+
+  void say() {
+      printf("%c -> %c, cap: %d, cost: %d\n", (char)from, (char)to, cap, cost);
+  }
+};
+
+#define maxn 22
+#define INF 0x3f3f3f3f
+class Solution {
+private:
+    vector<Edge> edges;
+    vector<int> edge_indice[maxn];
+    int dis[maxn], pre[maxn], increase_flow[maxn];
+    bool visited[maxn];
+    int max_flow, min_cost;
+
+    void addEdge(int f, int t, int cap, int cost) {
+        this->edges.push_back(Edge(f, t, cap, cost));
+        this->edges.push_back(Edge(t, f, 0, -cost));
+        int size = this->edges.size();
+        this->edge_indice[f].push_back(size - 2);
+        this->edge_indice[t].push_back(size - 1);
+    }
+
+    int spfa(int s, int t) {
+        memset(this->dis, INF, sizeof(this->dis));
+        this->dis[s] = 0;
+        this->increase_flow[s] = INF, this->increase_flow[t] = 0;
+
+        queue<int> q;
+        q.push(s);
+
+        while (!q.empty()) {
+            int v = q.front();
+            q.pop();
+            this->visited[v] = false;
+            
+            for (int index: this->edge_indice[v]) {
+                Edge& v_edge = this->edges[index];//edge starts with v
+                
+                if (!v_edge.cap || this->dis[v_edge.to] <= this->dis[v] + v_edge.cost) {
+                    continue;
+                }
+
+                this->increase_flow[v_edge.to] = min(this->increase_flow[v], v_edge.cap);
+                this->dis[v_edge.to] = this->dis[v] + v_edge.cost;
+                this->pre[v_edge.to] = index;
+                
+                if (!this->visited[v_edge.to]) {
+                    this->visited[v_edge.to] = true;
+                    q.push(v_edge.to);
+                }
+            }
+        }
+        return this->increase_flow[t];
+    }
+
+    void update(int s, int t) {
+        //printf("increase_flow: %d\n", this->increase_flow[t]);
+        this->max_flow += this->increase_flow[t];
+        
+        for (int u = t; u != s; u = this->edges[this->pre[u] ^ 1].to) {
+            this->min_cost += this->increase_flow[t] * this->edges[this->pre[u]].cost;
+            this->edges[this->pre[u]].cap -= this->increase_flow[t];
+            this->edges[this->pre[u] ^ 1].cap += this->increase_flow[t];
+        }
+
+    }
+
+public:
+    int maximumRequests(int n, vector<vector<int>>& requests) {
+        int degrees[maxn] = {0};
+        int movement[maxn][maxn] = {{0}};
+        int s = n, t = n+1;
+        this->max_flow = 0, this->min_cost = 0;
+
+        for (vector<int>& req: requests) {
+            movement[req[0]][req[1]]++;
+            degrees[req[0]]++;
+            degrees[req[1]]--;
+        }
+
+        for (int i = 0; i < n; i++) {
+            for (int k = 0; k < n; k++) {
+                if (i != k && movement[i][k]) {
+                    this->addEdge(i, k, movement[i][k], 1);
+                }
+            }
+        }
+
+        for (int i = 0; i < n; i++) {
+            if (degrees[i] > 0) {
+                this->addEdge(s, i, degrees[i], 0);
+            } else if (degrees[i] < 0) {
+                this->addEdge(i, t, -degrees[i], 0);
+            }
+        }
+
+        while (this->spfa(s, t)) {
+            this->update(s, t);
+        }
+
+        return requests.size() - this->min_cost;
+    }
+};
+```
+
