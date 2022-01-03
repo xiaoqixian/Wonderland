@@ -107,15 +107,20 @@ public:
                     this->addEdge(i, k, movement[i][k], 1);
                 }
             }
-        }
-
-        for (int i = 0; i < n; i++) {
             if (degrees[i] > 0) {
                 this->addEdge(s, i, degrees[i], 0);
             } else if (degrees[i] < 0) {
                 this->addEdge(i, t, -degrees[i], 0);
             }
         }
+
+        //for (int i = 0; i < n; i++) {
+            //if (degrees[i] > 0) {
+                //this->addEdge(s, i, degrees[i], 0);
+            //} else if (degrees[i] < 0) {
+                //this->addEdge(i, t, -degrees[i], 0);
+            //}
+        //}
 
         while (this->spfa(s, t)) {
             this->update(s, t);
@@ -129,6 +134,7 @@ int main() {
     Solution s;
     //vector<vector<int>> requests = {{0,1},{1,0},{0,1},{1,2},{2,0},{3,4}};
     //vector<vector<int>> requests = {{0, 0}, {1, 2}, {2, 1}};
-    vector<vector<int>> requests = {{1,2},{1,2},{2,2},{0,2},{2,1},{1,1},{1,2}};
+    //vector<vector<int>> requests = {{1,2},{1,2},{2,2},{0,2},{2,1},{1,1},{1,2}};
+    vector<vector<int>> requests = {{0,1},{1,0},{0,1},{1,2},{2,0},{3,4}};
     printf("%d\n", s.maximumRequests(5, requests));
 }
