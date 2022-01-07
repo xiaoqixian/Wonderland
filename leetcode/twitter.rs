@@ -64,7 +64,7 @@ impl<T> PriorityQueue<T> where T: Copy+Comp<T> {
             self.exch(j, k);
             k = j;
         }
-        return k;
+        k
     }
 
     fn pop(&mut self) -> Option<T> {
