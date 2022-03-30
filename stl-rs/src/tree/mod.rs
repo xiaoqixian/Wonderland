@@ -9,12 +9,3 @@
 
 mod tree_map;
 
-trait Map<K, V> where K: Ord {
-    fn get<'a>(&'a self, k: &K) -> Option<&'a V>;
-
-    fn get_mut<'a>(&'a mut self, k: &K) -> Option<&'a mut V>;
-
-    fn insert(&mut self, k: K, v: V) -> Option<V>;
-
-    fn remove(&mut self, k: &K) -> Option<V>;
-}
