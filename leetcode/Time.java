@@ -623,24 +623,6 @@ public class Time {
         return res;
     }
 
-    public int[] nextGreaterElement(int[] nums1, int[] nums2) {
-        Map<Integer, Integer> map = new HashMap<Integer, Integer>();
-        Deque<Integer> stack = new ArrayDeque<Integer>();
-        for (int i = nums2.length - 1; i >= 0; --i) {
-            int num = nums2[i];
-            while (!stack.isEmpty() && num >= stack.peek()) {
-                stack.pop();
-            }
-            map.put(num, stack.isEmpty() ? -1 : stack.peek());
-            stack.push(num);
-        }
-        int[] res = new int[nums1.length];
-        for (int i = 0; i < nums1.length; ++i) {
-            res[i] = map.get(nums1[i]);
-        }
-        return res;
-    }
-
     public static int[] nextGreaterElement(int[] nums1, int[] nums2) {
         int[] res = new int[nums1.length];
         int i, k, max;
@@ -658,8 +640,116 @@ public class Time {
         return res;
     }
 
-    public static void main(String[] args) {
-        print(findPoisonedDuration(new int[] {1, 2}, 2));
+    enum Scale {
+        BINARY(2),
+        OCTAL(8),
+        DECIMAL(10),
+        HEX(16);
+
+        public final int limit;
+
+        Scale(int limit) {
+            this.limit = limit;
+        }
+    }
+
+    static int charToNumber(char c) throws Exception {
+        if (Character.isDigit(c))
+            return c - '0';
+        else if (Character.isLetter(c)) {
+            char upper = Character.toUpperCase(c);
+            if (upper - 'A' > 5)
+                throw new Exception("Invalid character");
+            return upper - 'A' + 10;
+        } else throw new Exception("Invalid character");
+    }
+
+    static char numberToChar(int num) {
+        if (num < 10)
+            return (char)('0' + num);
+        else return (char)('A' + (num - 10));
+    }
+
+    static void check(String a, Scale scale) throws Exception {
+        for (char c: a.toCharArray()) {
+            if (charToNumber(c) >= scale.limit)
+                throw new Exception("Exist invalid character: " + a + " for scale " + scale);
+        }
+    }
+
+    public static String addInMultipleSystem(String a, String b, Scale scale) throws Exception {
+        check(a, scale); check(b, scale);
+
+        if (a.length() < b.length()) {
+            String temp = a;
+            a = b;
+            b = temp;
+        }
+
+        boolean carry = false;
+        int temp, len = b.length(), diff = a.length() - len;
+        char[] num1 = a.toCharArray(), num2 = b.toCharArray();
+        char[] res = new String(a).toCharArray();
+
+        for (int i = len - 1; i >= 0; i--) {
+            temp = charToNumber(num1[i + diff]) + charToNumber(num2[i]);
+            if (carry) {
+                temp++;
+                carry = false;
+            }
+
+            if (temp >= scale.limit) {
+                temp -= scale.limit;
+                carry = true;
+            }
+
+            res[i] = numberToChar(temp);
+        }
+
+        if (carry) {
+            while (carry && --diff >= 0) {
+                temp = charToNumber(num1[diff]) + 1;
+                carry = false;
+
+                if (temp >= scale.limit) {
+                    temp -= scale.limit;
+                    carry = true;
+                }
+
+                res[diff] = numberToChar(temp);
+            }
+        }
+
+        if (carry)
+            return "1" + String.valueOf(res);
+        return String.valueOf(res);
+    }
+
+    public static String octalToBinary(int num) throws Exception {
+        if (num < 0 || num > 7) throw new Exception("Invalid octal number " + num);
+
+        char[] res = new char[3]; // 8进制由3位二进制表示
+        Arrays.fill(res, '0');
+        for (int i = 0; i < 3; i++) {
+            res[2 - i] = (num & (1 << i)) == 0 ? '0' : '1';
+        }
+        print(String.valueOf(res));
+        return String.valueOf(res);
+    }
+
+    public static String transferBase(String num, Scale in, Scale out) throws Exception {
+        if (in.limit == 10 || out.limit == 10)
+            throw new Exception("Decimal base not supported");
+
+        int resLen = 0;
+        return "";
+    }
+
+    public static void main(String[] args) throws Exception {
+        octalToBinary(4);
+        //print(addInMultipleSystem("1a24g", "1000", Scale.HEX));
+        //int a = 0x1a24, b = 0x1000;
+        //print(String.format("0x%08X", a + b)); // 16进制形式打印整数
     }
 
     public static <T> void print(T t) {
@@ -682,6 +772,209 @@ public class Time {
         System.out.println("]");
     }
 }
+
+class MyLinkedList {
+
+    static class Node {
+        public int val;
+        public Node prev;
+        public Node next;
+
+        Node(int val) {
+            this.val = val;
+            this.prev = null;
+            this.next = null;
+        }
+    }
+
+    private Node head;
+    private Node tail;
+    private int size;
+
+    public MyLinkedList() {
+        this.head = null;
+        this.tail = null;
+        this.size = 0;
+    }
+    
+    private Node reach(int index) {
+        if (index < 0 || index >= this.size)
+            return null;
+        Node iter = null;
+
+        if (index > this.size >> 1) {
+            iter = this.tail;
+            index = this.size - index - 1;
+            while (--index >= 0) iter = iter.prev;
+            return iter;
+        } else {
+            iter = this.head;
+            while (--index >= 0) iter = iter.next;
+            return iter;
+        }
+    }
+
+    public int get(int index) {
+        Node iter = this.reach(index);
+        if (iter == null)
+            return -1;
+        else return iter.val;
+    }
+    
+    public void addAtHead(int val) {
+        Node newNode = new Node(val);
+        this.size++;
+
+        if (this.head == null) {
+            this.head = newNode;
+            this.tail = newNode;
+        } else {
+            this.head.prev = newNode;
+            newNode.next = this.head;
+            this.head = newNode;
+        }
+    }
+    
+    public void addAtTail(int val) {
+        Node newNode = new Node(val);
+        this.size++;
+
+        if (this.tail == null) {
+            this.head = newNode;
+            this.tail = newNode;
+        } else {
+            this.tail.next = newNode;
+            newNode.prev = this.tail;
+            this.tail = newNode;
+        }
+    }
+    
+    public void addAtIndex(int index, int val) {
+        Node iter = this.reach(index), newNode = new Node(val);
+
+        if (iter == null) {
+            if (this.size == 0 && index == 0) {
+                this.head = newNode;
+                this.tail = newNode;
+            } else if (this.size == index) {
+                this.tail.next = newNode;
+                newNode.prev = this.tail;
+                this.tail = newNode;
+            }
+            this.size++;
+            return;
+        }
+
+        if (iter.prev == null) {
+            iter.prev = newNode;
+            newNode.next = iter;
+            this.head = newNode;
+        } else {
+            iter.prev.next = newNode;
+            newNode.prev = iter.prev;
+            newNode.next = iter;
+            iter.prev = newNode;
+        }
+        this.size++;
+    }
+    
+    public void deleteAtIndex(int index) {
+        if (index >= this.size) return;
+
+        Node iter = this.reach(index);
+        this.size--;
+
+        if (iter == null)
+            return;
+
+        if (iter.prev == null) {
+            this.head = iter.next;
+            if (iter.next == null) 
+                this.tail = null;
+            else 
+                iter.next.prev = null;
+        } else {
+            iter.prev.next = iter.next;
+            if (iter.next == null)
+                this.tail = iter.prev;
+            else
+                iter.next.prev = iter.prev;
+        }
+    }
+}
+
+/**
+ * Your MyLinkedList object will be instantiated and called as such:
+ * MyLinkedList obj = new MyLinkedList();
+ * int param_1 = obj.get(index);
+ * obj.addAtHead(val);
+ * obj.addAtTail(val);
+ * obj.addAtIndex(index,val);
+ * obj.deleteAtIndex(index);
+ */
+
+/*class ArrayList {*/
+    /*// 下面两个是类的成员，可以通过this.array 和 this.alloc 进行访问*/
+    /*private int[] array;*/
+    /*private int alloc; //已分配的元素数目*/
+
+    /*// ArrayList 的构造函数，在new一个实例时被调用。*/
+    /*ArrayList(int capacity) {*/
+        /*this.array = new int[capacity];*/
+        /*this.alloc = 0;*/
+    /*}*/
+
+    /*private void expand() {*/
+        /*int[] temp = this.array;*/
+        /*this.array = new int[temp.length << 1];*/
+        /*System.arraycopy(temp, 0, this.array, 0, this.alloc);*/
+    /*}*/
+
+    /*// 往ArrayList 末尾添加元素*/
+    /*public void add(int element) {*/
+
+    /*}*/
+
+    /*// 往某个索引添加元素，原来该索引及以后的元素往后移一位*/
+    /*public void add(int index, int element) {*/
+
+    /*}*/
+
+    /*//通过索引获取元素*/
+    /*public int get(int index) throws Exception {*/
+
+    /*}*/
+
+    /*//通过索引移除元素*/
+    /*public int remove(int index) throws Exception {*/
+
+    /*}*/
+
+    /*//通过索引修改某个元素*/
+    /*public void set(int index, int element) throws Exception {*/
+
+    /*}*/
+
+    /*//返回ArrayList 大小*/
+    /*public int size() {*/
+
+    /*}*/
+
+    /*// 是否包含某个元素*/
+    /*public boolean contains(int element) {*/
+        
+    /*}*/
+
+    /*// 返回某个元素的索引，若有多个，返回第一个索引*/
+    /*public int indexOf(int element) {*/
+
+    /*}*/
+
+    /*// 清空ArrayList*/
+    /*public void clear() {*/
+
+    /*}*/
+/*}*/
 
 
 /*class BigInteger {*/
