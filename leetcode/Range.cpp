@@ -45,7 +45,7 @@ private:
     set<Range> ranges;
 
     inline set<Range>::iterator swim(int bound) {
-        return this->swim(bound, this->ranges.begin());
+        return --this->ranges.lower_bound(Range(bound, 0));
     }
 
     set<Range>::iterator swim(int bound, set<Range>::iterator start) {
@@ -67,7 +67,7 @@ public:
             return;
         }
 
-        set<Range>::iterator start = this->swim(left), end = this->swim(right, start);
+        set<Range>::iterator start = this->swim(left), end = this->swim(right);
 
         if (start == end && left > start->right) {
             this->ranges.insert(Range(left, right));
@@ -104,7 +104,7 @@ public:
         if (this->ranges.size() == 1)
             return;
 
-        set<Range>::iterator start = this->swim(left), end = this->swim(right, start);
+        set<Range>::iterator start = this->swim(left), end = this->swim(right);
 
         if (start == end && left >= start->right) {
             return;

@@ -746,10 +746,8 @@ public class Time {
     }
 
     public static void main(String[] args) throws Exception {
-        octalToBinary(4);
-        //print(addInMultipleSystem("1a24g", "1000", Scale.HEX));
-        //int a = 0x1a24, b = 0x1000;
-        //print(String.format("0x%08X", a + b)); // 16进制形式打印整数
+        MyLinkedList[] a = new MyLinkedList[4];
+        print(a[0] == null);
     }
 
     public static <T> void print(T t) {
@@ -903,15 +901,96 @@ class MyLinkedList {
     }
 }
 
-/**
- * Your MyLinkedList object will be instantiated and called as such:
- * MyLinkedList obj = new MyLinkedList();
- * int param_1 = obj.get(index);
- * obj.addAtHead(val);
- * obj.addAtTail(val);
- * obj.addAtIndex(index,val);
- * obj.deleteAtIndex(index);
- */
+class HashMap {
+
+    //键值对的类
+    static class Pair {
+        int key, value;
+        
+        Pair(int key, int value) {
+            
+        }
+    }
+
+    LinkedList[] array;//要求链表内存储的值为Pair类型
+    int size;
+
+    HashMap(int capacity) {
+    }
+
+    //需要通过key产生索引时调用这个hash函数
+    private int hash(int key) {
+        return key % this.array.length;
+    }
+
+    //存入一个键值对, 如果键已存在则更新value
+    public void put(int key, int value) {
+
+    }
+
+    //如果未找到，返回-1
+    public int get(int key) {
+        
+    }
+
+    //删除一个键值对
+    public void remove(int key) {
+
+    }
+
+    //只有在key已经存在的情况下，则更新value，与put有所不同
+    public void replace(int key, int value) {
+        
+    }
+
+    public int size() {
+
+    }
+
+    //是否包含某个key
+    public boolean containsKey(int key) {
+
+    }
+
+    //只有在key不存在map内的情况下才存入键值对
+    public void putIfAbscent(int key, int value) {
+
+    }
+
+    //合并另一个map, 如果存在相同的key, 则不复制
+    public void merge(HashMap map) {
+
+    }
+
+    //合并另一个map, 如果存在相同的key, 则更新为另一个map的value
+    public void putAll(HashMap map) {
+
+    }
+
+    //如果存在key, 则返回对应的value, 否则返回defaultValue
+    public int getOrDefault(int key, int defaultValue) {
+        
+    }
+
+    //清空map
+    public void clear() {
+
+    }
+
+    //将map中所有的键值对以Pair数组的形式返回
+    public Pair[] entrySet() {
+
+    }
+
+    //将map中所有的键以int[] 的形式返回
+    public int[] keySet() {
+
+    }
+
+    public boolean isEmpty() {
+
+    }
+}
 
 /*class ArrayList {*/
     /*// 下面两个是类的成员，可以通过this.array 和 this.alloc 进行访问*/
