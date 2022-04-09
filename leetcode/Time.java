@@ -1,5 +1,7 @@
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 public class Time {
     public static int romanToInt1(String s) {
@@ -745,9 +747,59 @@ public class Time {
         return "";
     }
 
+    /*public static ListNode deleteDuplicates(ListNode head) {*/
+        /*if (head == null || head.next == null)*/
+            /*return head;*/
+        
+        /*ListNode curr = head, prev = null;*/
+        /*head = null;*/
+        /*boolean duplicate;*/
+
+        /*while (curr != null) {*/
+            /*duplicate = false;*/
+            
+            /*while (curr.next != null && curr.next.val == curr.val) {*/
+                /*curr.next = curr.next.next;*/
+                /*duplicate = true;*/
+            /*}*/
+            
+            /*if (prev == null) {*/
+                /*if (!duplicate) {*/
+                    /*prev = curr;*/
+                    /*head = prev;*/
+                /*}*/
+                /*curr = curr.next;*/
+            /*} else {*/
+                /*if (duplicate) {*/
+                    /*prev.next = curr.next;*/
+                /*} else {*/
+                    /*prev = prev.next;*/
+                /*}*/
+                /*curr = prev.next;*/
+            /*}*/
+        /*}*/
+        /*return head;*/
+    /*}*/
+
+    public static ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        HashSet<ListNode> hs = new HashSet<>();
+
+        ListNode iter = headA;
+        while (iter != null) {
+            hs.add(iter);
+            iter = iter.next;
+        }
+
+        iter = headB;
+        while (iter != null) {
+            if (hs.contains(iter))
+                break;
+            iter = iter.next;
+        }
+        return iter;
+    }
+
     public static void main(String[] args) throws Exception {
-        MyLinkedList[] a = new MyLinkedList[4];
-        print(a[0] == null);
     }
 
     public static <T> void print(T t) {
@@ -771,226 +823,226 @@ public class Time {
     }
 }
 
-class MyLinkedList {
+/*class MyLinkedList {*/
 
-    static class Node {
-        public int val;
-        public Node prev;
-        public Node next;
+    /*static class Node {*/
+        /*public int val;*/
+        /*public Node prev;*/
+        /*public Node next;*/
 
-        Node(int val) {
-            this.val = val;
-            this.prev = null;
-            this.next = null;
-        }
-    }
+        /*Node(int val) {*/
+            /*this.val = val;*/
+            /*this.prev = null;*/
+            /*this.next = null;*/
+        /*}*/
+    /*}*/
 
-    private Node head;
-    private Node tail;
-    private int size;
+    /*private Node head;*/
+    /*private Node tail;*/
+    /*private int size;*/
 
-    public MyLinkedList() {
-        this.head = null;
-        this.tail = null;
-        this.size = 0;
-    }
+    /*public MyLinkedList() {*/
+        /*this.head = null;*/
+        /*this.tail = null;*/
+        /*this.size = 0;*/
+    /*}*/
     
-    private Node reach(int index) {
-        if (index < 0 || index >= this.size)
-            return null;
-        Node iter = null;
+    /*private Node reach(int index) {*/
+        /*if (index < 0 || index >= this.size)*/
+            /*return null;*/
+        /*Node iter = null;*/
 
-        if (index > this.size >> 1) {
-            iter = this.tail;
-            index = this.size - index - 1;
-            while (--index >= 0) iter = iter.prev;
-            return iter;
-        } else {
-            iter = this.head;
-            while (--index >= 0) iter = iter.next;
-            return iter;
-        }
-    }
+        /*if (index > this.size >> 1) {*/
+            /*iter = this.tail;*/
+            /*index = this.size - index - 1;*/
+            /*while (--index >= 0) iter = iter.prev;*/
+            /*return iter;*/
+        /*} else {*/
+            /*iter = this.head;*/
+            /*while (--index >= 0) iter = iter.next;*/
+            /*return iter;*/
+        /*}*/
+    /*}*/
 
-    public int get(int index) {
-        Node iter = this.reach(index);
-        if (iter == null)
-            return -1;
-        else return iter.val;
-    }
+    /*public int get(int index) {*/
+        /*Node iter = this.reach(index);*/
+        /*if (iter == null)*/
+            /*return -1;*/
+        /*else return iter.val;*/
+    /*}*/
     
-    public void addAtHead(int val) {
-        Node newNode = new Node(val);
-        this.size++;
+    /*public void addAtHead(int val) {*/
+        /*Node newNode = new Node(val);*/
+        /*this.size++;*/
 
-        if (this.head == null) {
-            this.head = newNode;
-            this.tail = newNode;
-        } else {
-            this.head.prev = newNode;
-            newNode.next = this.head;
-            this.head = newNode;
-        }
-    }
+        /*if (this.head == null) {*/
+            /*this.head = newNode;*/
+            /*this.tail = newNode;*/
+        /*} else {*/
+            /*this.head.prev = newNode;*/
+            /*newNode.next = this.head;*/
+            /*this.head = newNode;*/
+        /*}*/
+    /*}*/
     
-    public void addAtTail(int val) {
-        Node newNode = new Node(val);
-        this.size++;
+    /*public void addAtTail(int val) {*/
+        /*Node newNode = new Node(val);*/
+        /*this.size++;*/
 
-        if (this.tail == null) {
-            this.head = newNode;
-            this.tail = newNode;
-        } else {
-            this.tail.next = newNode;
-            newNode.prev = this.tail;
-            this.tail = newNode;
-        }
-    }
+        /*if (this.tail == null) {*/
+            /*this.head = newNode;*/
+            /*this.tail = newNode;*/
+        /*} else {*/
+            /*this.tail.next = newNode;*/
+            /*newNode.prev = this.tail;*/
+            /*this.tail = newNode;*/
+        /*}*/
+    /*}*/
     
-    public void addAtIndex(int index, int val) {
-        Node iter = this.reach(index), newNode = new Node(val);
+    /*public void addAtIndex(int index, int val) {*/
+        /*Node iter = this.reach(index), newNode = new Node(val);*/
 
-        if (iter == null) {
-            if (this.size == 0 && index == 0) {
-                this.head = newNode;
-                this.tail = newNode;
-            } else if (this.size == index) {
-                this.tail.next = newNode;
-                newNode.prev = this.tail;
-                this.tail = newNode;
-            }
-            this.size++;
-            return;
-        }
+        /*if (iter == null) {*/
+            /*if (this.size == 0 && index == 0) {*/
+                /*this.head = newNode;*/
+                /*this.tail = newNode;*/
+            /*} else if (this.size == index) {*/
+                /*this.tail.next = newNode;*/
+                /*newNode.prev = this.tail;*/
+                /*this.tail = newNode;*/
+            /*}*/
+            /*this.size++;*/
+            /*return;*/
+        /*}*/
 
-        if (iter.prev == null) {
-            iter.prev = newNode;
-            newNode.next = iter;
-            this.head = newNode;
-        } else {
-            iter.prev.next = newNode;
-            newNode.prev = iter.prev;
-            newNode.next = iter;
-            iter.prev = newNode;
-        }
-        this.size++;
-    }
+        /*if (iter.prev == null) {*/
+            /*iter.prev = newNode;*/
+            /*newNode.next = iter;*/
+            /*this.head = newNode;*/
+        /*} else {*/
+            /*iter.prev.next = newNode;*/
+            /*newNode.prev = iter.prev;*/
+            /*newNode.next = iter;*/
+            /*iter.prev = newNode;*/
+        /*}*/
+        /*this.size++;*/
+    /*}*/
     
-    public void deleteAtIndex(int index) {
-        if (index >= this.size) return;
+    /*public void deleteAtIndex(int index) {*/
+        /*if (index >= this.size) return;*/
 
-        Node iter = this.reach(index);
-        this.size--;
+        /*Node iter = this.reach(index);*/
+        /*this.size--;*/
 
-        if (iter == null)
-            return;
+        /*if (iter == null)*/
+            /*return;*/
 
-        if (iter.prev == null) {
-            this.head = iter.next;
-            if (iter.next == null) 
-                this.tail = null;
-            else 
-                iter.next.prev = null;
-        } else {
-            iter.prev.next = iter.next;
-            if (iter.next == null)
-                this.tail = iter.prev;
-            else
-                iter.next.prev = iter.prev;
-        }
-    }
-}
+        /*if (iter.prev == null) {*/
+            /*this.head = iter.next;*/
+            /*if (iter.next == null) */
+                /*this.tail = null;*/
+            /*else */
+                /*iter.next.prev = null;*/
+        /*} else {*/
+            /*iter.prev.next = iter.next;*/
+            /*if (iter.next == null)*/
+                /*this.tail = iter.prev;*/
+            /*else*/
+                /*iter.next.prev = iter.prev;*/
+        /*}*/
+    /*}*/
+/*}*/
 
-class HashMap {
+/*class HashMap {*/
 
-    //键值对的类
-    static class Pair {
-        int key, value;
+    /*//键值对的类*/
+    /*static class Pair {*/
+        /*int key, value;*/
         
-        Pair(int key, int value) {
+        /*Pair(int key, int value) {*/
             
-        }
-    }
+        /*}*/
+    /*}*/
 
-    LinkedList[] array;//要求链表内存储的值为Pair类型
-    int size;
+    /*LinkedList[] array;//要求链表内存储的值为Pair类型*/
+    /*int size;*/
 
-    HashMap(int capacity) {
-    }
+    /*HashMap(int capacity) {*/
+    /*}*/
 
-    //需要通过key产生索引时调用这个hash函数
-    private int hash(int key) {
-        return key % this.array.length;
-    }
+    /*//需要通过key产生索引时调用这个hash函数*/
+    /*private int hash(int key) {*/
+        /*return key % this.array.length;*/
+    /*}*/
 
-    //存入一个键值对, 如果键已存在则更新value
-    public void put(int key, int value) {
+    /*//存入一个键值对, 如果键已存在则更新value*/
+    /*public void put(int key, int value) {*/
 
-    }
+    /*}*/
 
-    //如果未找到，返回-1
-    public int get(int key) {
+    /*//如果未找到，返回-1*/
+    /*public int get(int key) {*/
         
-    }
+    /*}*/
 
-    //删除一个键值对
-    public void remove(int key) {
+    /*//删除一个键值对*/
+    /*public void remove(int key) {*/
 
-    }
+    /*}*/
 
-    //只有在key已经存在的情况下，则更新value，与put有所不同
-    public void replace(int key, int value) {
+    /*//只有在key已经存在的情况下，则更新value，与put有所不同*/
+    /*public void replace(int key, int value) {*/
         
-    }
+    /*}*/
 
-    public int size() {
+    /*public int size() {*/
 
-    }
+    /*}*/
 
-    //是否包含某个key
-    public boolean containsKey(int key) {
+    /*//是否包含某个key*/
+    /*public boolean containsKey(int key) {*/
 
-    }
+    /*}*/
 
-    //只有在key不存在map内的情况下才存入键值对
-    public void putIfAbscent(int key, int value) {
+    /*//只有在key不存在map内的情况下才存入键值对*/
+    /*public void putIfAbscent(int key, int value) {*/
 
-    }
+    /*}*/
 
-    //合并另一个map, 如果存在相同的key, 则不复制
-    public void merge(HashMap map) {
+    /*//合并另一个map, 如果存在相同的key, 则不复制*/
+    /*public void merge(HashMap map) {*/
 
-    }
+    /*}*/
 
-    //合并另一个map, 如果存在相同的key, 则更新为另一个map的value
-    public void putAll(HashMap map) {
+    /*//合并另一个map, 如果存在相同的key, 则更新为另一个map的value*/
+    /*public void putAll(HashMap map) {*/
 
-    }
+    /*}*/
 
-    //如果存在key, 则返回对应的value, 否则返回defaultValue
-    public int getOrDefault(int key, int defaultValue) {
+    /*//如果存在key, 则返回对应的value, 否则返回defaultValue*/
+    /*public int getOrDefault(int key, int defaultValue) {*/
         
-    }
+    /*}*/
 
-    //清空map
-    public void clear() {
+    /*//清空map*/
+    /*public void clear() {*/
 
-    }
+    /*}*/
 
-    //将map中所有的键值对以Pair数组的形式返回
-    public Pair[] entrySet() {
+    /*//将map中所有的键值对以Pair数组的形式返回*/
+    /*public Pair[] entrySet() {*/
 
-    }
+    /*}*/
 
-    //将map中所有的键以int[] 的形式返回
-    public int[] keySet() {
+    /*//将map中所有的键以int[] 的形式返回*/
+    /*public int[] keySet() {*/
 
-    }
+    /*}*/
 
-    public boolean isEmpty() {
+    /*public boolean isEmpty() {*/
 
-    }
-}
+    /*}*/
+/*}*/
 
 /*class ArrayList {*/
     /*// 下面两个是类的成员，可以通过this.array 和 this.alloc 进行访问*/
