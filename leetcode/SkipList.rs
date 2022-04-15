@@ -10,96 +10,130 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use rand::prelude::*;
+const MAX_LEVEL: usize = 32;
 
-struct Node<T> where T: Ord + Eq {
+struct SkipListNode<T> {
     val: T,
-    next: RefCell<Option<Rc<Self>>>,
-    next_level_node: RefCell<Option<Rc<Self>>>
+    layers: RefCell<Vec<Option<Rc<Self>>>>
 }
 
-trait LinkedListNode {
-    type Output;
-    fn next(&self) -> Self::Output;
-
-    fn set_next(&self, next: Self::Output);
-}
-
-struct LinkedList<T> where T: LinkedListNode + Clone {
-    head: Option<T>,
-    tail: Option<T>,
-    size: usize
-}
-
-impl<T> LinkedListNode for Node<T> where T: Ord + Eq {
-    type Output = Option<Rc<Self>>;
-    fn next(&self) -> Self::Output {
-        self.next.borrow().clone()
-    }
-
-    fn set_next(&self, next: Self::Output) {
-        assert!(next.is_some());
-        let old_next = self.next.replace(next.clone());
-        *next.as_ref().unwrap().next.borrow_mut() = old_next;
-    }
-}
-
-impl<T> PartialEq for Node<T> where T: Ord + Eq {
+impl<T> PartialEq for SkipListNode<T>
+where T: Eq {
     fn eq(&self, other: &Self) -> bool {
         self.val == other.val
     }
 }
 
-impl<T> Eq for Node<T> where T: Ord + Eq {}
+impl<T> Eq for SkipListNode<T> where T: Ord {}
 
-impl<T> Ord for Node<T> where T: Ord + Eq {
+impl<T> Ord for SkipListNode<T>
+where T: Ord {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.val.cmp(&other.val)
     }
 }
 
-impl<T> PartialOrd for Node<T> where T: Ord + Eq {
+impl<T> PartialOrd for SkipListNode<T>
+where T: Ord {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<T> Node<T> where T: Ord + Eq {
-    fn new(val: T) -> Self {
+impl<T> SkipListNode<T> {
+    fn new(val: T, size: usize) -> Self {
         Self {
             val,
-            next: RefCell::new(None),
-            next_level_node: RefCell::new(None)
+            layers: RefCell::new(vec![None; size])
         }
     }
 }
 
-impl<T> LinkedList<T> where T: LinkedListNode + Clone + Ord + Eq {
+struct SkipList<T> {
+    level: usize,
+    head: Rc<SkipListNode<T>>,
+    tail: Rc<SkipListNode<T>>
+}
+
+impl SkipList<i32> {
     fn new() -> Self {
+        let tail = Rc::new(SkipListNode::<i32>::new(std::i32::MAX, 0));
+        let head = SkipListNode::<i32>::new(std::i32::MAX, MAX_LEVEL);
+        {
+            let mut head_layers = head.layers.borrow_mut();
+
+            for i in 0..MAX_LEVEL {
+                (*head_layers)[i] = Some(tail.clone());
+            }
+        }
+            
         Self {
-            head: None,
-            tail: None,
-            size: 0
+            level: 0,
+            head: Rc::new(head),
+            tail
         }
-    }
-
-    //append a new node after node.
-    fn append_after(&mut self, node: T, new_node: T) {
-        if self.tail.is_some() && self.tail.as_ref().unwrap() == &node {
-            self.tail = Some(new_node.clone());
-        }
-        node.set_next(new_node);
-        self.size += 1;
     }
 }
 
-struct SkipList<T> where T: Ord + Eq {
-    list: Vec<LinkedList<Node<T>>>,
-    rng: ThreadRng
+impl<T> SkipList<T> {
+    fn random_level() -> usize {
+        return 0;
+    }
+
+    pub fn add(&mut self, val: T) where T: Ord {
+        let mut update = Vec::<Rc<SkipListNode<T>>>::with_capacity(MAX_LEVEL);
+        let mut cursor = self.head.clone();
+
+        let mut index = self.level-1;
+        while index >= 0 {
+            loop {
+                cursor = match cursor.clone().layers.borrow().get(index) {
+                    Some(skiplist_node) => {
+                        match skiplist_node {
+                            Some(node) if node < &cursor => node.clone(),
+                            _ => break
+                        }
+                    },
+                    None => break
+                };
+            }
+            update[index] = cursor.clone();
+            index -= 1;
+        }
+
+        let lv = {
+            let mut lv = Self::random_level();
+            if lv > self.level {
+                self.level += 1;
+                lv = self.level;
+                update[lv - 1] = self.head.clone();
+            }
+            lv
+        };
+
+        let new_node = Rc::new(SkipListNode::<T>::new(val, lv));
+        let mut new_node_layers = new_node.layers.borrow_mut();
+        index = lv - 1;
+        while index >= 0 {
+            let p = update[index].clone();
+            (*new_node_layers)[index] = match p.layers.borrow().get(index).unwrap() {
+                None => None,
+                Some(v) => Some(v.clone())
+            };
+            (*p.layers.borrow_mut())[index] = Some(new_node.clone());
+        }
+    }
+
+    pub fn erase(target: T) where T: Ord -> bool {
+        let mut update = Vec::<Rc<SkipListNode<T>>>::with_capacity(MAX_LEVEL + 1);
+        let mut head = self.head.clone();
+        let mut head = self.head.clone();
+    }
 }
-
-
 
 fn main() {
-    
+    for i in 0..6 {
+        println!("{}", i);
+    }
 }
+
