@@ -1231,9 +1231,13 @@ public class Time {
     //}
 
     public static void main(String[] args) throws Exception {
-        Animal a = new Cat();
-        Cat c = (Cat) a;
-        Dog d = (Dog) a;
+        Comparator<String> c = new Comparator<String>() {
+            public int compare(String t1, String t2) {
+                return -1;
+            }
+        };
+
+        c.compare("a", "b");
     }
 
     public static <T> void print(T t) {
@@ -1257,14 +1261,8 @@ public class Time {
     }
 }
 
-class Animal {
+interface Comparator<T> {
+    boolean equals(Object o);
 
-}
-
-class Cat extends Animal {
-
-}
-
-class Dog extends Animal {
-
+    int compare(T t1, T t2);
 }

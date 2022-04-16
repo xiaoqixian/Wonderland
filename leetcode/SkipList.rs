@@ -9,6 +9,7 @@
 
 use std::rc::Rc;
 use std::cell::RefCell;
+use rand::prelude::*;
 
 const MAX_LEVEL: usize = 32;
 
@@ -47,6 +48,11 @@ impl<T> SkipListNode<T> {
             layers: RefCell::new(vec![None; size])
         }
     }
+
+    #[inline]
+    fn next(&self, layer: usize) -> Option<Rc<Self>> {
+        self.layers.borrow().get(layer).unwrap().clone()
+    }
 }
 
 struct SkipList<T> {
@@ -75,30 +81,42 @@ impl SkipList<i32> {
     }
 }
 
-impl<T> SkipList<T> {
+impl<T> SkipList<T> where T: std::fmt::Display {
     fn random_level() -> usize {
-        return 0;
+        let mut res: usize = 1;
+        let mut deno: u32 = 2;
+        let mut rng = rand::thread_rng();
+        
+        while res < MAX_LEVEL && rng.gen_ratio(1, deno) {
+            res += 1;
+            deno <<= 1;
+        }
+        res
+    }
+
+    fn find_at_layer(&self, mut cursor: Rc<SkipListNode<T>>, layer: usize, target: &T) 
+        -> Rc<SkipListNode<T>> where T: Ord {
+
+        if layer >= self.level {return cursor;}
+
+        loop {
+            cursor = match cursor.next(layer) {
+                Some(next_node) if &next_node.val < target => next_node.clone(),
+                _ => break
+            };
+        }
+        cursor
     }
 
     pub fn add(&mut self, val: T) where T: Ord {
-        let mut update = Vec::<Rc<SkipListNode<T>>>::with_capacity(MAX_LEVEL);
+        let mut update: Vec::<Option<Rc<SkipListNode<T>>>> = vec![None; MAX_LEVEL];
         let mut cursor = self.head.clone();
 
-        let mut index = self.level-1;
-        while index >= 0 {
-            loop {
-                cursor = match cursor.clone().layers.borrow().get(index) {
-                    Some(skiplist_node) => {
-                        match skiplist_node {
-                            Some(node) if node < &cursor => node.clone(),
-                            _ => break
-                        }
-                    },
-                    None => break
-                };
-            }
-            update[index] = cursor.clone();
+        let mut index = self.level;
+        while index > 0 {
             index -= 1;
+            cursor = self.find_at_layer(cursor, index, &val);
+            update[index] = Some(cursor.clone());
         }
 
         let lv = {
@@ -106,16 +124,18 @@ impl<T> SkipList<T> {
             if lv > self.level {
                 self.level += 1;
                 lv = self.level;
-                update[lv - 1] = self.head.clone();
+                update[lv - 1] = Some(self.head.clone());
             }
             lv
         };
 
         let new_node = Rc::new(SkipListNode::<T>::new(val, lv));
         let mut new_node_layers = new_node.layers.borrow_mut();
-        index = lv - 1;
-        while index >= 0 {
-            let p = update[index].clone();
+        index = lv;
+
+        while index > 0 {
+            index -= 1;
+            let p = update.get(index).unwrap().as_ref().unwrap().clone();
             (*new_node_layers)[index] = match p.layers.borrow().get(index).unwrap() {
                 None => None,
                 Some(v) => Some(v.clone())
@@ -124,10 +144,57 @@ impl<T> SkipList<T> {
         }
     }
 
-    pub fn erase(target: T) where T: Ord -> bool {
-        let mut update = Vec::<Rc<SkipListNode<T>>>::with_capacity(MAX_LEVEL + 1);
-        let mut head = self.head.clone();
-        let mut head = self.head.clone();
+    pub fn erase(&mut self, target: T) -> bool where T: Ord {
+        let mut update: Vec<Option<Rc<SkipListNode<T>>>> = vec![None; MAX_LEVEL + 1];
+        let mut cursor = self.head.clone();
+        let mut i = self.level;
+
+        while i > 0 {
+            i -= 1;
+            cursor = self.find_at_layer(cursor, i, &target);
+            update[i] = Some(cursor.clone());
+        }
+
+        //cursor = cursor.clone().layers.borrow().get(0).unwrap().as_ref().unwrap().clone();
+        cursor = cursor.next(0).unwrap();
+        if cursor.val != target {
+            return false;
+        }
+
+        i = 0;
+        while i < self.level {
+            match update.get(i).unwrap().as_ref().unwrap().layers.borrow().get(i).unwrap() {
+                Some(skiplist_node) if skiplist_node == &cursor => {},
+                _ => break
+            }
+            println!("layers length = {}", cursor.layers.borrow().len());
+            (*update[i].as_ref().unwrap().layers.borrow_mut())[i] = match cursor.layers.borrow().get(i) {
+                Some(node) if node.is_some() => node.clone(),
+                _ => None
+            };
+            i += 1;
+        }
+
+        while self.level > 0 && match self.head.layers.borrow().get(self.level-1) {
+            Some(node) if node.is_some() => node.as_ref().unwrap() == &self.tail,
+            _ => false
+        } { //head layers are always be Some.
+            self.level -= 1;
+        }
+        true
+    }
+
+    pub fn query(&self, target: T) -> bool where T: Ord {
+        let mut height = self.level;
+        let mut cursor = self.head.clone();
+        
+        while height > 0 {
+            height -= 1;
+            cursor = self.find_at_layer(cursor, height, &target);
+        }
+        //cursor = cursor.clone().layers.borrow().get(0).unwrap().as_ref().unwrap().clone();
+        cursor = cursor.next(0).unwrap();
+        cursor.val == target
     }
 }
 
