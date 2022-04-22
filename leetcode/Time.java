@@ -1,4 +1,3 @@
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashSet;
 /*class MyLinkedList {*/
@@ -1162,7 +1161,7 @@ public class Time {
         if (num < 0 || num > 7) throw new Exception("Invalid octal number " + num);
 
         char[] res = new char[3]; // 8进制由3位二进制表示
-        Arrays.fill(res, '0');
+        //Arrays.fill(res, '0');
         for (int i = 0; i < 3; i++) {
             res[2 - i] = (num & (1 << i)) == 0 ? '0' : '1';
         }
@@ -1231,13 +1230,20 @@ public class Time {
     //}
 
     public static void main(String[] args) throws Exception {
-        Comparator<String> c = new Comparator<String>() {
-            public int compare(String t1, String t2) {
-                return -1;
-            }
-        };
+        java.util.PriorityQueue<Integer> pqStandard = new java.util.PriorityQueue<>();
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
 
-        c.compare("a", "b");
+        java.util.Random rand = new java.util.Random();
+
+        for (int i = 0; i != 1000; i++) {
+            int num = rand.nextInt(1000);
+            pqStandard.add(num);
+            pq.add(num);
+            
+            if (!pqStandard.peek().equals(pq.peek())) {
+                throw new Exception("test failed");
+            }
+        }
     }
 
     public static <T> void print(T t) {
@@ -1261,8 +1267,4 @@ public class Time {
     }
 }
 
-interface Comparator<T> {
-    boolean equals(Object o);
 
-    int compare(T t1, T t2);
-}

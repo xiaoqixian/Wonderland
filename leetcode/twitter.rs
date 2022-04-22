@@ -40,17 +40,15 @@ impl<T> PriorityQueue<T> where T: Copy+Comp<T> {
         self.queue[j] = temp;
     }
 
-    fn swim(&mut self, kk: usize) {
-        let mut k = kk;
+    fn swim(&mut self, mut k: usize) {
         while k > 1 && self.queue[k].comp(&self.queue[k/2]) {
             self.exch(k, k/2);
             k /= 2;
         }
     }
 
-    fn sink(&mut self, kk: usize) -> usize {
+    fn sink(&mut self, mut k: usize) -> usize {
         let mut j: usize;
-        let mut k = kk;
         let size = self.alloc;
         
         while 2*k <= size {
