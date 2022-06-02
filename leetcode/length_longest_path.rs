@@ -16,6 +16,7 @@ impl Solution {
         let mut level_index: usize = 0;
         let mut curr_path_len: usize = 0;
         let mut first_letter: bool = true;
+        let mut is_file: bool = false;
         
         for c in input.chars() {
             print!("char: ");
@@ -28,8 +29,9 @@ impl Solution {
                 '\n' => {
                     level_index = 0;
 
-                    if curr_path_len + levels.len() - 1 > res {
+                    if is_file && curr_path_len + levels.len() - 1 > res {
                         res = curr_path_len + levels.len() - 1;
+                        is_file = false;
                         println!("res = {}", res);
                     }
                     first_letter = true;
@@ -48,14 +50,17 @@ impl Solution {
                     curr_path_len += 1;
                     first_letter = false;
                 },
-                _ => {
+                c => {
                     levels[level_index] += 1;
                     curr_path_len += 1;
+                    if c == '.' {
+                        is_file = true;
+                    }
                 }
             }
         }
 
-        if curr_path_len + levels.len() - 1 > res {
+        if is_file && curr_path_len + levels.len() - 1 > res {
             res = curr_path_len + levels.len() - 1;
         }
 
@@ -78,9 +83,6 @@ impl std::ops::Add for &A {
 }
 
 fn main() {
-    let a = A {i: 1};
-    let b = A {i: 2};
-    let c = &(&a + &b) + &a;
-    println!("{:?}", c);
+    println!("{}", Solution::length_longest_path(String::from("a")));
     //println!("{}", Solution::length_longest_path(String::from("dir\n\tsubdir1\n\t\tfile1.ext\n\t\tsubsubdir1\n\tsubdir2\n\t\tsubsubdir2\n\t\t\tfile2.ext")));
 }
