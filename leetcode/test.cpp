@@ -9,12 +9,18 @@
 
 #include <stdio.h>
 #include <iostream>
-#include <list>
 #include <vector>
-#include <set>
 using namespace std;
 
 int main() {
-    set<int> s = {1,2,3,4};
-    printf("%d\n", s.erase(2));
+    vector<int> v = {1,2,3,4};
+    auto start = v.begin(), end = ++start;
+    v.erase(start, ++end);
+
+    for (auto n: v) {
+        printf("%d, ", n);
+    }
+    printf("\n");
+    cout << "end at " << *end << endl;
+    cout << "start at " << *start << endl;
 }
