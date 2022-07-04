@@ -7,20 +7,13 @@
   > Copyright@ https://github.com/xiaoqixian
  **********************************************/
 
-#include <stdio.h>
 #include <iostream>
-#include <vector>
-using namespace std;
+#include <bitset>
 
 int main() {
-    vector<int> v = {1,2,3,4};
-    auto start = v.begin(), end = ++start;
-    v.erase(start, ++end);
-
-    for (auto n: v) {
-        printf("%d, ", n);
-    }
-    printf("\n");
-    cout << "end at " << *end << endl;
-    cout << "start at " << *start << endl;
+    int x = 3;
+    std::bitset<32> a(x), b(-x);
+    std::cout << "a: " << a << std::endl;
+    std::cout << "b: " << b << std::endl;
+    std::cout << (x & -x) << std::endl;
 }

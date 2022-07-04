@@ -31,6 +31,9 @@ public:
 
         int ret = 0;
         for (int j = 0; j < n; j++) { // 对于每一列，使用基于柱状图的方法
+            /*
+             * up[i] 表示从up[i]行到i行，在j列所有的left都大于等于left[i][j]
+             */
             vector<int> up(m, 0), down(m, 0);
 
             stack<int> stk;
