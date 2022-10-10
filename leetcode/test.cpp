@@ -7,13 +7,12 @@
   > Copyright@ https://github.com/xiaoqixian
  **********************************************/
 
-#include <iostream>
-#include <bitset>
+#include <vector>
+using namespace std;
 
 int main() {
-    int x = 3;
-    std::bitset<32> a(x), b(-x);
-    std::cout << "a: " << a << std::endl;
-    std::cout << "b: " << b << std::endl;
-    std::cout << (x & -x) << std::endl;
+    vector<int> a = {1,2,3,4}, b(4);
+
+    std::transform(a.cbegin(), a.cend(), b.begin(), [](int x) {return x+1;});
+    printf("%d\n", b[0]);
 }
