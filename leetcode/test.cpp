@@ -7,12 +7,50 @@
   > Copyright@ https://github.com/xiaoqixian
  **********************************************/
 
+#include <queue>
 #include <vector>
 using namespace std;
 
-int main() {
-    vector<int> a = {1,2,3,4}, b(4);
+class Solution {
+public:
+    bool sumOfNumberAndReverse(const int num) {
+        if (!num) return true;
+        auto inverse_digit = [](int num) {
+            queue<int> q;
+            while (num) {
+                q.push(num % 10);
+                num /= 10;
+            }
+            int res = 0;
+            while (!q.empty()) {
+                res *= 10;
+                res += q.front();
+                q.pop();
+            }
+            return res;
+        };
+        
+        int digits = 1, div = 10;
+        while (num / div) {
+            digits++;
+            div *= 10;
+        }
+        
+        vector<bool> did(div, false);
+        //div /= 10;
+        //printf("div = %d\n", div);
+        for (int i = 0; i < num; i++) {
+            printf("i = %d\n", i);
+            if (did[i]) continue;
+            int inv_i = inverse_digit(i);
+            if (inv_i + i == num) return true;
+            did[inv_i] = true;
+        }
+        return false;
+    }
+};
 
-    std::transform(a.cbegin(), a.cend(), b.begin(), [](int x) {return x+1;});
-    printf("%d\n", b[0]);
+int main() {
+    if ((5-2 <= 3))
+        printf("%d\n", Solution().sumOfNumberAndReverse(10));
 }
