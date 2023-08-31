@@ -16,10 +16,10 @@ impl Solution {
         let mut visited: Vec<RefCell<bool>> = vec![RefCell::new(false); n];
         let mut res: i64 = 0;
 
-        for (pos, e) in receiver.iter().enumerate() {
+        receiver.iter().enumerate().for_each(|(pos, e)| {
             degrees[pos] -= 1;
             degrees[*e] += 1;
-        }
+        });
 
         let mut dfs = |start_id: usize| {
             let mut st = vec![start_id];
@@ -76,14 +76,13 @@ impl Solution {
             let mut step: i64 = k;
             let (dist, ring_index) = ring_info[start_id].unwrap();
 
-            let mut limit = std::cmp::min(dist as i64, step);
+            let limit = std::cmp::min(dist as i64, step);
             step -= limit as i64;
             let mut rid = start_id;
 
-            while limit > 0 {
+            for _ in 0..limit as usize {
                 sum += rid as i64;
                 rid = receiver[rid];
-                limit -= 1;
             }
 
             if step > 0 {
