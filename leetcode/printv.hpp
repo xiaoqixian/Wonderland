@@ -6,14 +6,14 @@
   > Location        : Shanghai
   > Copyright@ https://github.com/xiaoqixian
  **********************************************/
-#ifndef _PRINTV_H
-#define _PRINTV_H
+#ifndef _PRINTV_HPP
+#define _PRINTV_HPP
 
 #include <stdio.h>
 #include <vector>
 using namespace std;
 
-void printv(vector<int>& v) {
+inline void printv(vector<int> const& v) {
     printf("[");
     for (int num: v) {
         printf("%d, ", num);
@@ -21,7 +21,7 @@ void printv(vector<int>& v) {
     printf("]\n");
 }
 
-void printvx(vector<int>& v) {
+inline void printvx(vector<int>& v) {
     printf("[");
     for (int num: v) {
         printf("%x, ", num);
@@ -29,7 +29,7 @@ void printvx(vector<int>& v) {
     printf("]\n");
 }
 
-void printvxu(vector<unsigned int>& v) {
+inline void printvxu(vector<unsigned int>& v) {
     printf("[");
     for (unsigned int num: v) {
         printf("%x, ", num);
@@ -37,7 +37,7 @@ void printvxu(vector<unsigned int>& v) {
     printf("]\n");
 }
 
-void printv2(vector<vector<int>>& v2) {
+inline void printv2(vector<vector<int>>& v2) {
     int s1 = v2.size(), s2, i, k;
     if (s1 == 0) {
         printf("[[]]\n");
@@ -75,4 +75,4 @@ void printv2(vector<vector<int>>& v2) {
 }
 
 
-#endif /* _PRINTV_H*/
+#endif /* _PRINTV_HPP*/
