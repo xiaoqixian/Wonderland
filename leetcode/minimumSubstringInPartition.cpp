@@ -70,3 +70,36 @@ public:
         return dp[s.size()];
     }
 };
+<<<<<<< HEAD
+=======
+
+class BestSolution {
+public:
+    int minimumSubstringsInPartition(std::string& s) {
+        int n = s.size();
+        int maxNum = 0;
+        int num = 0;
+        int diffNum = 0;
+        std::vector<int> dp(n + 1, INT_MAX);
+        dp[n] = 0;
+
+        for (int i = n - 1; i >= 0; i--) {
+            maxNum = 0;
+            diffNum = 0;
+            int m[26] = {0};
+            for (int j = i; j < n; j++) {
+                int c = s[j] - 'a';
+                num = ++m[c];
+                if (num == 1) diffNum++;
+                maxNum = std::max(num, maxNum);
+
+                if (maxNum * diffNum == j - i + 1) {
+                    dp[i] = std::min(dp[i], 1 + dp[j + 1]);
+                }
+            }
+        }
+
+        return dp[0];
+    }
+};
+>>>>>>> 18a930d (Leetcode 3144)
