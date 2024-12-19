@@ -16,7 +16,7 @@
 
 #### **字符串**
 
-
+[Robin-Karp 算法](doc/Robin-Karp.md)
 
 ---
 
@@ -31,6 +31,8 @@
 [红黑树](doc/red_black_tree.md)
 
 [字典树](doc/dictionart_tree.md)
+
+[线段树](doc/segment_tree.md)
 
 ---
 
